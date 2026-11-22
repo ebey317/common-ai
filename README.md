@@ -24,6 +24,7 @@ difference between being taken care of and being interrogated.
 
 | File | What it does |
 |---|---|
+| `sources.py` | Knows where the person's information already lives, and pulls it. |
 | `intake.py` | The setup interview. Six sections, branches on situation, resumable, writes `profile.json`. |
 | `profile.json` | The single source of truth. Every other file reads from it. |
 | `profile.py` | Renders documents from the profile: two resumes and a full-history form. |
@@ -38,6 +39,8 @@ difference between being taken care of and being interrogated.
 ## Run it
 
 ```bash
+python3 sources.py where     # what documents exist and whether they're reachable
+python3 sources.py pull      # extract answers into prefill.json (no asking yet)
 python3 intake.py            # first-time setup, or resume where you stopped
 python3 intake.py --status   # which sections are done
 python3 intake.py --render   # rewrite profile.json from saved answers
@@ -59,6 +62,19 @@ python3 projects.py match          # everything rankable by what you own
 ```
 
 ---
+
+## Prefill: don't ask what's already written down
+
+`sources.py` reads the structured profile, the AI Query rules doc, the Applications Log,
+and both resumes, then writes `prefill.json`. `intake.py` shows each pulled answer with
+its source and asks only "keep it or correct it?"
+
+On a real profile that took **18 of 36 questions off the table** before the person was
+asked anything — identity, job filters, excluded roles, pay floor, commute radius, tools,
+budget, GitHub, website.
+
+What it will never prefill: health, household, spending habits, hobbies. Those were never
+written down, and a guessed prefill is worse than a question.
 
 ## The rules it enforces
 

@@ -26,6 +26,7 @@ from datetime import date
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 STATE = os.path.join(HERE, "intake_state.json")
+PREFILL = os.path.join(HERE, "prefill.json")
 PROFILE = os.path.join(HERE, "profile.json")
 
 # ----------------------------------------------------------------- questions
@@ -41,6 +42,8 @@ SECTIONS = [
         {"k": "personal.city", "q": "City?", "feeds": "job radius", "t": "str"},
         {"k": "personal.state", "q": "State (2 letters)?", "feeds": "job radius, tax forms", "t": "str"},
         {"k": "personal.zip", "q": "ZIP?", "feeds": "job radius, local programs", "t": "str"},
+        {"k": "personal.github", "q": "GitHub (or blank)?", "feeds": "your only free proof-of-work link", "t": "str"},
+        {"k": "personal.website", "q": "Website or portfolio (or blank)?", "feeds": "credibility on every application", "t": "str"},
     ]),
 
     ("money_in", "MONEY IN - asked first, it is why you came", [
@@ -198,21 +201,42 @@ def coerce(q, raw):
 
 
 # ----------------------------------------------------------------- asking
-def ask(q, answers, num, total):
+def _fmt(v):
+    if isinstance(v, list):
+        s = ", ".join(v)
+    else:
+        s = str(v)
+    return s if len(s) <= 64 else s[:61] + "..."
+
+
+def ask(q, answers, num, total, prefill=None):
     cur = get_path(answers, q["k"])
+    found = (prefill or {}).get(q["k"])
+
     print("\n" + "-" * 64)
     print("  [%d/%d] %s" % (num, total, q["q"]))
     print("  -> feeds: %s" % q["feeds"])
     if "choices" in q:
         print("  choices: %s" % " / ".join(q["choices"]))
-    if cur not in (None, "", []):
-        print("  (saved: %s - press Enter to keep)" % cur)
+
+    already = cur not in (None, "", [])
+    if not already and found:
+        cur = found["value"]
+        already = True
+        print("  FOUND in %s: %s" % (found["source"], _fmt(cur)))
+        print("  press Enter to keep it, or type a correction")
+
+    if already and not (found and not get_path(answers, q["k"])):
+        print("  (saved: %s - press Enter to keep)" % _fmt(cur))
+    elif already and found:
+        pass
+
     sys.stdout.write("  > ")
     sys.stdout.flush()
     raw = sys.stdin.readline()
     if raw == "":
         raise EOFError
-    if raw.strip() == "" and cur not in (None, "", []):
+    if raw.strip() == "" and already:
         return cur
     return coerce(q, raw)
 
@@ -220,6 +244,10 @@ def ask(q, answers, num, total):
 def run():
     st = load_state()
     answers = st["answers"]
+    prefill = {}
+    if os.path.exists(PREFILL):
+        with open(PREFILL, encoding="utf-8") as fh:
+            prefill = json.load(fh)
 
     flat = [(s, q) for s, _, qs in SECTIONS for q in qs]
     total = len(flat)
@@ -230,6 +258,8 @@ def run():
     print("  Every question shows what it changes. If one does not make sense,")
     print("  press Enter to skip - nothing breaks.")
     print("  Quit any time with Ctrl-C and come back where you left off.")
+    if prefill:
+        print("  %d answers were pulled from your documents - confirm or correct them." % len(prefill))
 
     n = 0
     try:
@@ -244,7 +274,7 @@ def run():
                 if "when" in q and not condition_met(q["when"], answers):
                     continue
                 n += 1
-                val = ask(q, answers, n, total)
+                val = ask(q, answers, n, total, prefill)
                 set_path(answers, q["k"], val)
                 save_state(st)
             if sec_id not in st["done"]:
