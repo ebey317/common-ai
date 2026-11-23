@@ -175,19 +175,12 @@ def say(text, out):
         return False
 
 
-def main(argv):
-    out = os.path.join(HERE, "weekly_demo.mp4")
-    if "--out" in argv:
-        out = argv[argv.index("--out") + 1]
-
-    facts = week_facts()
-    print("data:", facts["total"], "tracked,", facts["verified"], "verified,",
-          len(facts["interviews"]), "interviews")
-
+def render(scenes_list, out):
+    """Render any (kicker, headline, sub, narration) list to one MP4."""
     tmp = tempfile.mkdtemp(prefix="cua-vid-")
     clips, total = [], 0.0
 
-    for i, (kicker, headline, sub, narr) in enumerate(scenes(facts)):
+    for i, (kicker, headline, sub, narr) in enumerate(scenes_list):
         png = os.path.join(tmp, "s%02d.png" % i)
         mp3 = os.path.join(tmp, "s%02d.mp3" % i)
         mp4 = os.path.join(tmp, "s%02d.mp4" % i)
@@ -216,7 +209,7 @@ def main(argv):
             print("  ffmpeg failed:", r.stderr[-300:])
             return 1
         clips.append(mp4)
-        print("  scene %d/%d  %.1fs  %s" % (i + 1, len(scenes(facts)), dur, headline[:34]))
+        print("  scene %d/%d  %.1fs  %s" % (i + 1, len(scenes_list), dur, headline[:34]))
 
     lst = os.path.join(tmp, "list.txt")
     with open(lst, "w") as fh:
@@ -234,6 +227,16 @@ def main(argv):
     print("\n  -> %s" % out)
     print("  %.1fs, %.1f MB, %d scenes" % (total, size / 1e6, len(clips)))
     return 0
+
+
+def main(argv):
+    out = os.path.join(HERE, "weekly_demo.mp4")
+    if "--out" in argv:
+        out = argv[argv.index("--out") + 1]
+    facts = week_facts()
+    print("data:", facts["total"], "tracked,", facts["verified"], "verified,",
+          len(facts["interviews"]), "interviews")
+    return render(scenes(facts), out)
 
 
 if __name__ == "__main__":
