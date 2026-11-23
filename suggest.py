@@ -15,6 +15,7 @@ cannot be traced to state, it does not get made. That rule is what makes a
 suggestion trustworthy instead of a chatbot guessing.
 
 Ranked by consequence:
+  110  a live interview invite - outranks everything, it is the whole point
   100  a bucket with nothing live - the search has a hole in it
    90  an application at its 90-day check
    80  an expired application that needs replacing
@@ -70,6 +71,21 @@ def age(row, today):
 
 
 # ---------------------------------------------------------------- signals
+def s_interviews(rows):
+    """A live interview outranks everything. It is the whole point of the search."""
+    out = []
+    for r in rows:
+        if r.get("status") != "interview":
+            continue
+        note = (r.get("notes") or "").strip()
+        out.append({
+            "pri": 110, "kind": "live",
+            "text": "%s wants you for %s." % (r.get("company"), r.get("role")),
+            "action": (note + ".") if note else "Respond today - a live invite goes cold fast.",
+        })
+    return out
+
+
 def s_bucket_holes(prof, rows, today):
     """A bucket with nothing live is the highest-value thing to say."""
     out = []
@@ -249,6 +265,7 @@ def gather():
     prof, inv, st, rows = load_all()
     today = date.today()
     items = []
+    items += s_interviews(rows)
     items += s_bucket_holes(prof, rows, today)
     items += s_checks_due(rows, today)
     items += s_expired(rows, today)
