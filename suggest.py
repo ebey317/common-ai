@@ -37,10 +37,19 @@ PROFILE = os.path.join(HERE, "profile.json")
 LEDGER = os.path.join(HERE, "ledger.csv")
 INVENTORY = os.path.join(HERE, "inventory.json")
 STATE = os.path.join(HERE, "intake_state.json")
+STANDARDS = os.path.join(HERE, "standards.json")
 
 ALIVE = {"applied", "aged"}
-CHECK_DAYS = 90
-EXPIRE_DAYS = 180
+
+
+def _std():
+    """Read the standards file. Thresholds live there, not in this module."""
+    st = _json(STANDARDS, {})
+    life = st.get("lifecycle", {})
+    def v(key, default):
+        node = life.get(key, {})
+        return node.get("value", default) if isinstance(node, dict) else default
+    return st, v("check_days", 90), v("expire_days", 180)
 
 
 # ---------------------------------------------------------------- load
@@ -86,7 +95,7 @@ def s_interviews(rows):
     return out
 
 
-def s_bucket_holes(prof, rows, today):
+def s_bucket_holes(prof, rows, today, expire_days):
     """A bucket with nothing live is the highest-value thing to say."""
     out = []
     buckets = prof.get("buckets", {})
@@ -94,7 +103,7 @@ def s_bucket_holes(prof, rows, today):
         live = [r for r in rows
                 if r.get("bucket") == name
                 and r.get("status") in ALIVE
-                and age(r, today) < EXPIRE_DAYS]
+                and age(r, today) < expire_days]
         if not live:
             label = cfg.get("label", name)
             titles = cfg.get("titles", [])
@@ -107,13 +116,13 @@ def s_bucket_holes(prof, rows, today):
     return out
 
 
-def s_checks_due(rows, today):
+def s_checks_due(rows, today, check_days, expire_days):
     out = []
     for r in rows:
         if r.get("status") not in ALIVE:
             continue
         a = age(r, today)
-        if CHECK_DAYS <= a < EXPIRE_DAYS:
+        if check_days <= a < expire_days:
             out.append({
                 "pri": 90, "kind": "job",
                 "text": "%s (%s) is %d days out with no answer." % (
@@ -123,10 +132,10 @@ def s_checks_due(rows, today):
     return out
 
 
-def s_expired(rows, today):
+def s_expired(rows, today, expire_days):
     out = []
     for r in rows:
-        if r.get("status") in ALIVE and age(r, today) >= EXPIRE_DAYS:
+        if r.get("status") in ALIVE and age(r, today) >= expire_days:
             out.append({
                 "pri": 80, "kind": "job",
                 "text": "%s (%s) hit 180 days - that posting is dead." % (
@@ -136,9 +145,10 @@ def s_expired(rows, today):
     return out
 
 
-def s_idle(prof, rows, today):
+def s_idle(prof, rows, today, std):
     """Nothing moved in N days."""
-    idle_days = int(prof.get("wellbeing", {}).get("idle_days") or 5)
+    node = std.get("wellbeing", {}).get("idle_days", {})
+    idle_days = int(node.get("value", 5) if isinstance(node, dict) else (node or 5))
     stamps = []
     for r in rows:
         try:
@@ -211,6 +221,20 @@ def s_project(inv, prof):
     }]
 
 
+def s_violations(std, rows):
+    """Is the ledger breaking a rule the owner set? Cheapest possible audit."""
+    out = []
+    banned = set(std.get("never_list_employers", {}).get("value", []))
+    for r in rows:
+        if r.get("company") in banned:
+            out.append({
+                "pri": 120, "kind": "RULE",
+                "text": "%s is on your never-list but sits in the ledger." % r.get("company"),
+                "action": "Remove it and fold the work into the staffing block.",
+            })
+    return out
+
+
 def s_intake_gaps(st):
     """Blank answers make other outputs a guess. Name them."""
     answers = st.get("answers", {})
@@ -263,13 +287,15 @@ def s_time_bombs(prof, today):
 # ---------------------------------------------------------------- render
 def gather():
     prof, inv, st, rows = load_all()
+    std, check_days, expire_days = _std()
     today = date.today()
     items = []
+    items += s_violations(std, rows)
     items += s_interviews(rows)
-    items += s_bucket_holes(prof, rows, today)
-    items += s_checks_due(rows, today)
-    items += s_expired(rows, today)
-    items += s_idle(prof, rows, today)
+    items += s_bucket_holes(prof, rows, today, expire_days)
+    items += s_checks_due(rows, today, check_days, expire_days)
+    items += s_expired(rows, today, expire_days)
+    items += s_idle(prof, rows, today, std)
     items += s_spend_window(prof, today)
     items += s_project(inv, prof)
     items += s_intake_gaps(st)
