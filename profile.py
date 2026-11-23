@@ -18,7 +18,7 @@ Application forms are different: full history, all of it, or you get cut.
 import json
 import os
 import sys
-from datetime import date
+from datetime import date, datetime
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PROFILE = os.path.join(HERE, "profile.json")
@@ -54,9 +54,29 @@ def fmt_date(iso):
     return "%s %s" % (MONTHS[int(m) - 1], y)
 
 
+def _parse_date(s):
+    """Accept YYYY, YYYY-MM or YYYY-MM-DD.
+
+    The intake stores partial dates on purpose - a person often knows the month
+    and not the day - and every real profile here uses YYYY-MM. A renderer that
+    assumes full ISO dates works only on data nobody has.
+    """
+    s = str(s or "").strip()
+    if not s:
+        return None
+    for fmt in ("%Y-%m-%d", "%Y-%m", "%Y"):
+        try:
+            return datetime.strptime(s, fmt).date()
+        except ValueError:
+            continue
+    return None
+
+
 def tenure_days(job):
-    a = date.fromisoformat(job["start"])
-    b = date.fromisoformat(job["end"]) if job.get("end") else date.today()
+    a = _parse_date(job.get("start"))
+    b = _parse_date(job.get("end")) or date.today()
+    if a is None:
+        return 0          # an unknown start cannot count toward a threshold
     return (b - a).days
 
 
@@ -65,8 +85,8 @@ def split_jobs(p):
     long_, short = [], []
     for j in p["employment"]:
         (long_ if tenure_days(j) >= keep else short).append(j)
-    long_.sort(key=lambda j: j["start"], reverse=True)
-    short.sort(key=lambda j: j["start"], reverse=True)
+    long_.sort(key=lambda j: str(j.get("start") or ""), reverse=True)
+    short.sort(key=lambda j: str(j.get("start") or ""), reverse=True)
     return long_, short
 
 

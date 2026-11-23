@@ -41,6 +41,58 @@ account **you** authorize.
 
 ---
 
+## What it actually prints
+
+Real output, from `ledger.py seed` on a clean clone. Not a mockup.
+
+```
+$ python3 ledger.py report
+  10 live   1 closed   1 heard back
+
+  DREAM  (Reach - the job you'd take in a heartbeat)
+    3 live, 3 total
+    A0001 Anthropic              Solutions Engineer          12d  applied
+    A0002 Nous Research          Agent Runtime Engineer      45d  applied
+    A0003 Scale AI               AI Operations Lead          95d  aged  <-- CHECK NOW
+```
+
+```
+$ python3 suggest.py
+  1. [RULE] Example Former Employer C is on your never-list and still has a live application.
+     -> Close it out. The never-list means do not apply there. Closed history stays
+        in the ledger; forms require full disclosure.
+
+  2. [JOB] Scale AI (AI Operations Lead) is 95 days out with no answer.
+     -> Check it once: call, or reply to the confirmation email.
+
+  3. [JOB] Carrier (Commercial Installer) is 120 days out with no answer.
+     -> Check it once: call, or reply to the confirmation email.
+```
+
+Every line above traces to a file. No model call, no tokens, no cost — the ranking is
+arithmetic over the ledger and the rules.
+
+```
+$ python3 audit.py --brief
+  [P0] DRIFT
+    Never-list employers present in the ledger: Example Former Employer C.
+    -> Remove them; the work belongs in the staffing block, unnamed.
+
+  [P1] LIFECYCLE
+    1 applications are past 180 days: Eli Lilly (200d).
+    -> Those postings are gone. Replace them, do not re-tap them.
+
+  [P1] LAYERS
+    Pulse has never recorded a run - every layer is unverified.
+    -> Run: python3 pulse.py
+```
+
+The audit is the part that matters most. It recomputes every fixed answer against today and
+names the date it flips, so a rule that quietly stopped being true cannot sit there looking
+correct. A clean audit is two lines, not a wall.
+
+---
+
 ## The idea
 
 Most people don't need more capability. The bots they already pay for have the capability.
