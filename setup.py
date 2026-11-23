@@ -18,7 +18,6 @@ Exit codes are meaningful, so an agent can branch on them:
   2  usable, but the person still has to answer something (e.g. run intake)
 """
 
-import json
 import os
 import shutil
 import subprocess
