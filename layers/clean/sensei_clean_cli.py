@@ -244,7 +244,7 @@ def make_run_dir(raw_run_dir: str | None, run_id: str) -> Path:
 
 
 def cmd_scan(args: argparse.Namespace) -> int:
-    has_cloud = any(r.startswith("rclone:") for r in args.roots)
+    has_cloud = any(r.startswith(("rclone:", "gdrive:")) for r in args.roots)
     print(f"{BANNER}")
     print(f"  roots: {', '.join(args.roots)}")
     print(

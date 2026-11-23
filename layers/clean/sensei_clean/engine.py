@@ -49,6 +49,17 @@ def bump_sensitivity_if_private(items: Iterable[ItemRecord]) -> list[ItemRecord]
     return bumped
 
 
+def _name_key(item: ItemRecord) -> str:
+    """Normalised display name: handles the real mess in a shared Drive.
+
+    Trailing spaces, leading/trailing quotes, doubled spaces, and case are
+    how the same folder ends up created five times. Content hashing cannot
+    see any of it, because the folders are empty and the files differ.
+    """
+    name = (item.display_name or "").strip().strip("\"\'").strip()
+    return " ".join(name.lower().split())
+
+
 def build_findings(items: list[ItemRecord], run_id: str) -> list[FindingRecord]:
     """Group items by best-available hash. Cloud items typically have
     only md5 (Drive) or sha1 (other providers), not sha256. Within-source
@@ -66,6 +77,35 @@ def build_findings(items: list[ItemRecord], run_id: str) -> list[FindingRecord]:
             by_hash[("md5", md5)].append(item)
         elif sha1:
             by_hash[("sha1", sha1)].append(item)
+    # Second pass: same normalised name under the same parent. A duplicate
+    # name is not proof of a duplicate file - it is proof of a duplicate
+    # DECISION, which is what actually clutters a Drive.
+    by_name: dict[tuple[str, str], list[ItemRecord]] = defaultdict(list)
+    for item in items:
+        key = _name_key(item)
+        if not key:
+            continue
+        parent = str(item.identity.get("parent_id") or "")
+        by_name[(parent, key)].append(item)
+    for (parent, key), members in by_name.items():
+        if len(members) < 2:
+            continue
+        if len({m.identity.get("provider_id") for m in members}) < 2:
+            continue
+        raw = [m.display_name for m in members]
+        findings.append(FindingRecord(
+            schema_version="sensei.finding.v1",
+            run_id=run_id,
+            finding_id=hashlib.sha1(
+                ("name:%s:%s" % (parent, key)).encode("utf-8")).hexdigest(),
+            finding_type="duplicate_name",
+            item_ids=[m.item_id for m in members],
+            confidence=0.8,
+            risk=max(m.risk for m in members),
+            summary="%d items share the name %r" % (len(members), key),
+            evidence={"raw_names": raw, "parent_id": parent},
+        ))
+
     for (algo, value), members in by_hash.items():
         if len(members) < 2:
             continue
@@ -259,8 +299,9 @@ def scan_run(
     # Split roots into local vs cloud. Local goes through one
     # LocalFSAdapter (matches its multi-root constructor); each cloud
     # remote gets its own adapter so probe() reports the right account.
-    local_roots = [r for r in roots if not r.startswith("rclone:")]
+    local_roots = [r for r in roots if not r.startswith(("rclone:", "gdrive:"))]
     rclone_roots = [r for r in roots if r.startswith("rclone:")]
+    gdrive_roots = [r for r in roots if r.startswith("gdrive:")]
 
     adapter = LocalFSAdapter(run_id=run_id, roots=local_roots or [], quarantine_root=quarantine_root)
     capabilities: list[CapabilityReport] = []
@@ -297,6 +338,17 @@ def scan_run(
             )
             capabilities.append(cloud_adapter.probe())
             for cloud_item in cloud_adapter.scan():  # empty unless list_cloud=True
+                items.append(cloud_item)
+
+    if gdrive_roots:
+        # Real Drive v3 connector. Metadata only - nothing is downloaded,
+        # and there is no delete path. Listing is the point, so unlike the
+        # rclone branch it does not wait for a --list-cloud flag.
+        from .adapters.gdrive import GoogleDriveAdapter
+        for gdrive_root in gdrive_roots:
+            cloud_adapter = GoogleDriveAdapter(run_id=run_id, root=gdrive_root)
+            capabilities.append(cloud_adapter.probe())
+            for cloud_item in cloud_adapter.scan():
                 items.append(cloud_item)
 
     if sha256 and local_roots:

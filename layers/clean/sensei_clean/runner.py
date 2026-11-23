@@ -13,6 +13,9 @@ DEFAULT_LOCAL_ROOTS = ["~/Desktop", "~/Downloads", "~/Documents", "~/Pictures", 
 
 
 def build_adapter(adapter_name: str, run_id: str):
+    if adapter_name.startswith("gdrive:"):
+        from .adapters.gdrive import GoogleDriveAdapter
+        return GoogleDriveAdapter(run_id=run_id, root=adapter_name)
     if adapter_name.startswith("rclone:"):
         from .adapters.rclone_remote import RcloneRemoteAdapter
         remote = adapter_name.split(":", 1)[1]
