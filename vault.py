@@ -153,6 +153,27 @@ def _token_path(provider, env, default):
     return os.environ.get(env) or default
 
 
+def _write_private(path, payload, mode=None):
+    """Atomically write a SECRET file without widening its permissions.
+
+    A plain open(tmp) creates with 0666 & ~umask, so replacing a 0600 token
+    file with it silently makes the refresh token group- and world-readable.
+    The mode is therefore set explicitly before the rename.
+    """
+    if mode is None:
+        try:
+            mode = os.stat(path).st_mode & 0o777
+        except OSError:
+            mode = 0o600
+    tmp = path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as fh:
+        json.dump(payload, fh)
+        fh.flush()
+        os.fsync(fh.fileno())
+    os.chmod(tmp, mode)
+    os.replace(tmp, path)
+
+
 def _local_digest(path, kind):
     """Content hash of a local file, in the provider's own algorithm.
 
@@ -229,10 +250,7 @@ class GoogleVault:
             try:
                 tok["token"] = got["access_token"]
                 tok["expiry"] = _iso(time.time() + int(got.get("expires_in", 3600)))
-                tmp = self.path + ".tmp"
-                with open(tmp, "w", encoding="utf-8") as fh:
-                    json.dump(tok, fh)
-                os.replace(tmp, self.path)
+                _write_private(self.path, tok, 0o600)
             except Exception:
                 pass          # writing back is a convenience, not a requirement
             return self._token
@@ -370,10 +388,7 @@ class OneDriveVault:
         if got.get("refresh_token"):
             try:
                 tok["refresh_token"] = got["refresh_token"]
-                tmp = self.path + ".tmp"
-                with open(tmp, "w", encoding="utf-8") as fh:
-                    json.dump(tok, fh)
-                os.replace(tmp, self.path)
+                _write_private(self.path, tok, 0o600)
             except Exception:
                 pass
         return self._token
