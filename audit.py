@@ -46,11 +46,20 @@ ALIVE = {"applied", "aged"}
 LONG_TERM_UNEMPLOYED_WEEKS = 27   # WOTC-style long-term unemployment threshold
 
 
+# Inputs that exist but cannot be read. A malformed standards.json must never
+# let the audit print "Clean." - the audit's whole job is to say whether the
+# record is still true, and it cannot check a file it could not open.
+INPUT_ERRORS = []
+
+
 def _json(path, default):
+    if not os.path.exists(path):
+        return default          # absent is legitimate for optional inputs
     try:
         with open(path, encoding="utf-8") as fh:
             return json.load(fh)
-    except Exception:
+    except Exception as exc:
+        INPUT_ERRORS.append((os.path.basename(path), str(exc)[:90]))
         return default
 
 
@@ -82,10 +91,29 @@ def check_time_bombs(prof):
     """Recompute every fixed-answer rule. Name the date it flips."""
     out = []
     ends = []
+    current = []
+    today = date.today()
+
     for e in prof.get("employment", []):
-        d = e.get("end")
-        if d:
-            ends.append((date.fromisoformat(str(d)[:10]), e.get("employer", "?")))
+        raw = e.get("end")
+        who = e.get("employer", "?")
+        if not raw:
+            current.append(who)          # no end date == still employed there
+            continue
+        try:
+            end = date.fromisoformat(str(raw)[:10])
+        except Exception:
+            continue
+        if end >= today:
+            current.append(who)          # end date is in the future
+        ends.append((end, who))
+
+    # A job with no end date means current employment, and the long-term
+    # unemployment clock is not running. Computing it from an older job's end
+    # date would instruct the user to answer YES to a question that is
+    # honestly NO - a wrong fact produced by ignoring a current job.
+    if current:
+        return out
     if not ends:
         return out
 
@@ -211,6 +239,15 @@ def check_unlogged(rows):
             "Restore layers/email/triage.py."))
         return out
 
+    # This function never opens a mailbox. All it can observe is ledger
+    # silence, so it says so rather than letting an area named "unlogged"
+    # imply that inbox activity was compared against the record.
+    out.append(finding(
+        "P2", "unlogged",
+        "Inbox replies are not read by the audit - only ledger silence is checked.",
+        "A reply that the ledger has not recorded cannot be detected here. Run "
+        "the email triage layer, then log any status change it finds."))
+
     newest = None
     for r in rows:
         d = _days(r.get("applied"))
@@ -268,6 +305,15 @@ def check_layers(std):
         every = int(spec.get("every_minutes", 1440)) * 60
         last = state.get(name, {}).get("last", 0)
         if not last:
+            # Configured but never run. Previously this fell through `continue`
+            # and vanished: with one layer recorded, the empty-state guard above
+            # passed, so every other configured layer stayed silently unverified.
+            out.append(finding(
+                "P1", "layers",
+                "%s is configured in standards.json but has never recorded a run."
+                % name,
+                "Either it is not wired into pulse, or pulse has not fired since "
+                "it was added. An unrun layer is unverified, not healthy."))
             continue
         gap = now - last
         if gap > every * 2:
@@ -289,6 +335,12 @@ def gather():
             rows = list(csv.DictReader(fh))
 
     items = []
+    for name, err in INPUT_ERRORS:
+        items.append(finding(
+            "P0", "input",
+            "%s exists but could not be read (%s)." % (name, err),
+            "Every check that depends on it just ran on empty data, so this "
+            "audit cannot say the record is clean. Fix the file and re-run."))
     items += check_time_bombs(prof)
     items += check_drift(prof, rows, std)
     items += check_lifecycle(rows, std)

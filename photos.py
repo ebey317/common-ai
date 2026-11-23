@@ -103,6 +103,23 @@ def cmd_status():
     return 0
 
 
+def _managed_path(slot, path):
+    """True only when path is a file THIS tool created for THIS slot.
+
+    The profile only stores a string. If it ever holds a path outside
+    assets/wardrobe - a user editing the JSON, an old layout, a symlink - then
+    `remove` would delete the person's original photograph. Deleting is
+    irreversible, so ownership of the file is proven before every unlink.
+    """
+    if not path:
+        return False
+    real = os.path.realpath(path)
+    assets = os.path.realpath(ASSETS)
+    if os.path.dirname(real) != assets:
+        return False
+    return os.path.basename(real).startswith(slot + ".")
+
+
 def cmd_add(slot, src):
     if slot not in SLOTS:
         print("unknown slot %r. choose: %s" % (slot, ", ".join(SLOTS)))
@@ -114,14 +131,32 @@ def cmd_add(slot, src):
         print("not an image: %s" % src)
         return 2
 
+    # Validate the profile BEFORE copying. Copying first and failing on save
+    # leaves a private image on disk that nothing references or will clean up.
+    try:
+        prof = _load()
+    except Exception as exc:
+        print("cannot read profile.json (%s) - nothing copied." % str(exc)[:80])
+        return 2
+    w = _wardrobe(prof)
+    prev = w["photos"][slot].get("path")
+
     os.makedirs(ASSETS, exist_ok=True)
     dest = os.path.join(ASSETS, "%s%s" % (slot, os.path.splitext(src)[1].lower()))
     shutil.copy2(src, dest)
 
-    prof = _load()
-    w = _wardrobe(prof)
     w["photos"][slot].update({"path": dest, "added": date.today().isoformat()})
     _save(prof)
+
+    # Swapping face.jpg for face.png would otherwise leave the JPEG behind:
+    # the profile only remembers the newest path, so `remove` would delete the
+    # PNG and silently orphan the JPG.
+    if prev and _managed_path(slot, prev) and os.path.realpath(prev) != os.path.realpath(dest):
+        try:
+            os.remove(prev)
+            print("  replaced previous file: %s" % os.path.basename(prev))
+        except OSError:
+            pass
 
     print("added %s -> %s" % (slot, dest))
     print("  purpose: %s" % SLOTS[slot])
@@ -130,13 +165,24 @@ def cmd_add(slot, src):
 
 
 def cmd_remove(slot):
-    prof = _load()
+    try:
+        prof = _load()
+    except Exception as exc:
+        print("cannot read profile.json (%s)" % str(exc)[:80])
+        return 2
     w = _wardrobe(prof)
     rec = w["photos"].get(slot)
     if not rec or not rec.get("path"):
         print("%s is already empty." % slot)
         return 0
+
     p = rec["path"]
+    if not _managed_path(slot, p):
+        print("%s points at a file this tool did not create for this slot:" % slot)
+        print("  %s" % p)
+        print("  left untouched and still recorded. Delete it yourself if you mean to.")
+        return 1
+
     if os.path.exists(p):
         os.remove(p)
     rec["path"] = None
