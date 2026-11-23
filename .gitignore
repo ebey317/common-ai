@@ -1,3 +1,38 @@
+# ============================================================
+#  PERSONAL DATA - never leaves this machine
+# ------------------------------------------------------------
+#  This repo is public. Everything below is one person's real
+#  life: name, address, phone, health, the employers they
+#  applied to. Shipping it would be a data leak, not a release.
+#  profile.example.json shows the shape these files take.
+# ============================================================
+profile.json
+ledger.csv
+prefill.json
+inventory.json
+layer_state.json
+opportunities.json
+.pulse_state.json
 intake_state.json
+
+# wardrobe reference photos - body images, local only
+assets/
+
+# local backups of personal documents
+backups/
 *.bak
+*.bak-*
+
+# video / audio renders (large, and often personal)
+*.mp4
+*.mp3
+*.wav
+
+# python
 __pycache__/
+*.pyc
+.venv/
+venv/
+
+# os
+.DS_Store

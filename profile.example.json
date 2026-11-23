@@ -1,0 +1,357 @@
+{
+  "_note": "EXAMPLE ONLY. Copy to profile.json and fill in your own details. profile.json is gitignored and never leaves your machine.",
+  "_schema": "v1 - common-use-ai",
+  "_created": "2026-11-22",
+  "_updated": "2026-11-22",
+  "rules": {
+    "min_tenure_days_for_resume": 90,
+    "short_stint_handling": "no dated entry; fold the work into the hands-on line without employer or tenure",
+    "resume_is_curated": true,
+    "application_forms_require_full_history": true
+  },
+  "personal": {
+    "full_name": "Your Name",
+    "phone": "(555) 555-5555",
+    "email": "you@example.com",
+    "address_line1": "123 Main St",
+    "city": "Your City",
+    "state": "IN",
+    "zip": "00000",
+    "github": "github.com/yourhandle",
+    "website": ""
+  },
+  "domains": {
+    "trade": {
+      "label": "Facility Maintenance / Commercial HVAC",
+      "headline": "Facility Maintenance  -  Commercial HVAC  -  Sheet Metal  -  Mechanical Repair",
+      "summary": "Facility maintenance and mechanical technician with hands-on commercial HVAC installation, sheet metal fabrication, and equipment repair experience across industrial and commercial job sites in Your City. EPA Section 608 certified. Reads blueprints, performs on-site layouts, and has trained other installers and fabricators.",
+      "certs": [
+        "EPA Section 608 Type I & II Technician Certification (Oct 2020 - present)",
+        "Made Ready Technician, AC/C Technology (Dec 2020 - present)",
+        "Apartment Maintenance - Make-Ready and General Maintenance (Dec 2020 - present)"
+      ],
+      "education": [
+        {
+          "school": "AC/C Tech",
+          "credential": "Certificate - Facility Maintenance / HVAC",
+          "year": "2020",
+          "city": "Your City, IN"
+        },
+        {
+          "school": "Butler University",
+          "credential": "GED",
+          "year": "2006",
+          "city": "Your City, IN"
+        }
+      ],
+      "skills": [
+        "HVAC installation and service (residential + commercial)",
+        "Ductwork and sheet metal fabrication",
+        "Blueprint reading and on-site layout",
+        "Preventive maintenance and equipment repair",
+        "Refrigerant handling (EPA 608)",
+        "Low voltage and electrical",
+        "Plumbing",
+        "Forklift / scissor lift / boom lift"
+      ]
+    },
+    "tech": {
+      "label": "AI Systems / Agent Engineering",
+      "headline": "AI Workflow Engineer  -  Agent Orchestration  -  Automation  -  Python",
+      "summary": "Self-taught AI workflow engineer who designs and orchestrates multi-agent automation systems end-to-end, and runs all of it through a voice-and-controller input layer built from scratch. Core strength is reading and architecting systems and directing AI-agent implementation against a clear design; Python is the working tool underneath.",
+      "skills": [
+        "Multi-agent orchestration and delegation chains",
+        "LLM routing across multiple providers with fallback",
+        "MCP (Model Context Protocol) servers",
+        "Local inference (Ollama, llama.cpp)",
+        "REST API design (FastAPI)",
+        "Cron-scheduled autonomous agents",
+        "Tailscale mesh, cross-device deployment",
+        "Python, Bash, Git, Docker, systemd"
+      ],
+      "certs": [
+        "Anthropic Academy - Claude API Proficiency, Agent Skills, MCP Integration"
+      ],
+      "projects": [
+        {
+          "name": "Sensei - MCP Browser-Control Server",
+          "period": "Apr 2026 - Present",
+          "points": [
+            "29-tool MCP server giving agents full headless browser control over Chrome DevTools Protocol: DOM read, JS eval, click/fill, network capture, tab management. No extension required.",
+            "Automation backbone for agent-driven web workflows: form autofill, data extraction, end-to-end pipelines. Covered by an automated test suite."
+          ]
+        },
+        {
+          "name": "Thread Factory - Cross-Platform Knowledge-Curation Workflow",
+          "period": "Aug 2026",
+          "points": [
+            "Four-phase pipeline (extract, structure, publish, audit) converting raw AI chat history into organized project containers. Vendor-agnostic across Hermes, Claude, and ChatGPT.",
+            "Deployed across a 3-4 device mesh over Tailscale. Repeatable service, not a one-off script."
+          ]
+        },
+        {
+          "name": "US211-API - Public 211 Health and Human Services API",
+          "period": "Jul 2026",
+          "points": [
+            "REST API aggregating public 211 directory data (food, housing, utility, financial assistance) across all 50 states, DC, and territories into one HSDS-shaped endpoint.",
+            "Civic infrastructure. Covered by an automated test suite."
+          ]
+        },
+        {
+          "name": "AI Controller - Voice and Controller Input System",
+          "period": "Jun 2026 - Present",
+          "points": [
+            "Maps a game controller plus voice dictation to full desktop input, freeing work from a fixed keyboard-and-monitor setup. Linux, Windows, and Android.",
+            "Every other project listed here was built through this system. Daily-driver infrastructure, covered by an automated test suite."
+          ]
+        },
+        {
+          "name": "master-ai-cli - Local-First Agent Runtime",
+          "period": "2026",
+          "points": [
+            "Local-first AI agent CLI with plan mode, voice, MCP integration, and multi-provider routing. Built entirely in Python.",
+            "90.66% test coverage as of Oct 2026."
+          ]
+        }
+      ]
+    }
+  },
+  "employment": [
+    {
+      "title": "Your Title",
+      "employer": "Example Employer",
+      "city": "",
+      "start": "2024-01",
+      "end": "2025-01",
+      "end_confirmed": true,
+      "domain": "",
+      "summary": ""
+    }
+  ],
+  "buckets": {
+    "dream": {
+      "label": "Reach",
+      "titles": [
+        "AI Engineer",
+        "AI Solutions Engineer",
+        "Agent Engineer",
+        "Automation Engineer",
+        "AI Operations",
+        "Prompt Engineer",
+        "Technical AI Consultant"
+      ],
+      "salary_floor": 90000,
+      "domain": "tech",
+      "remote_ok": true
+    },
+    "trade": {
+      "label": "Trade",
+      "titles": [
+        "Commercial HVAC Technician",
+        "HVAC Service Technician",
+        "HVAC Installer",
+        "Refrigeration Technician"
+      ],
+      "salary_floor": 52000,
+      "domain": "trade",
+      "radius_miles": 40
+    },
+    "adjacent": {
+      "label": "Adjacent",
+      "titles": [
+        "Facility Maintenance Technician",
+        "Industrial Maintenance Technician",
+        "Maintenance Mechanic",
+        "Building Engineer"
+      ],
+      "salary_floor": 48000,
+      "domain": "trade",
+      "radius_miles": 40
+    },
+    "floor": {
+      "label": "Floor",
+      "titles": [
+        "Warehouse Associate",
+        "Package Handler",
+        "General Labor",
+        "Production Associate",
+        "Temporary -- any"
+      ],
+      "salary_floor": 0,
+      "domain": "trade",
+      "radius_miles": 20,
+      "same_day_apply": true
+    }
+  },
+  "inventory": {
+    "tools": [
+      "Hammer",
+      "drill",
+      "saw",
+      "sander",
+      "wrench set"
+    ],
+    "budget": 150
+  },
+  "preferences": {
+    "job_type": "Full-time",
+    "hours_per_week": 40,
+    "start": "Immediately",
+    "salary_floor_annual": 65000,
+    "willing_to_travel": "some",
+    "willing_to_relocate": false
+  },
+  "documents": {
+    "resume_pdf": "",
+    "resume_note": "No resume file exists on disk. The old path ~/Desktop/resume/ is gone. Generate from this file instead."
+  },
+  "_needs_confirmation": [],
+  "staffing_period": {
+    "label": "Contract & Staffing Assignments",
+    "city": "Your City, IN",
+    "start": "2023-11-01",
+    "end": "2026-11-01",
+    "summary": "Short-term engagements through staffing agencies across Your City: commercial HVAC installation and service, industrial motor rebuild for commercial laundry equipment, and preventive maintenance and mechanical repair in a Class 1 automotive drivetrain plant. Most recent engagement concluded November 2026.",
+    "note": "Covers Example Former Employer A, Example Former Employer B, and Example Former Employer C without naming them or dating them individually. True, checkable only as a category, and keeps the resume free of gaps."
+  },
+  "situation": {
+    "status": "unemployed",
+    "target_jobs": [
+      "HVAC install, HVAC service, HVAC maintenance",
+      "Facilities maintenance (commercial, warehouse, plant, industrial)",
+      "Industrial maintenance technician, multi-craft maintenance",
+      "General maintenance technician (NON-residential only)",
+      "Warehouse / DC / forklift / sanitation",
+      "Cleaning / janitorial",
+      "Skilled-trade helper (carpentry, drywall, painter, plumber\u2019s helper)",
+      "Entry-level service technician",
+      "Sheet metal fabricator / installer"
+    ],
+    "wont_do": [
+      "Apartment maintenance, multifamily on-site, make-ready, resident-access maintenance roles \u2014 reason: violent-felony background restricts resident-access employment",
+      "Any role requiring a CDL",
+      "Diesel / fleet mechanic",
+      "Auto-tech roles requiring ASE certs",
+      "Sales, account manager, business developer",
+      "Senior engineer, principal engineer, staff engineer",
+      "Software / IT / data / design roles",
+      "Roles requiring licenses the owner doesn\u2019t hold: master electrician, journeyman plumber",
+      "\u201cSenior\u201d or \u201cLead\u201d titles \u2014 SINGLE EXCEPTION: HVAC INSTALL LEAD is allowed. No other lead/senior titles.",
+      "========================================",
+      "LOCATION",
+      "========================================",
+      "Your City, IN and surrounding ~25 miles.",
+      "Out-of-state employers acceptable IF they have a reachable phone or recruiter email (e.g., Carolina Construction Services pattern \u2014 not local but real contact path).",
+      "Remote OK.",
+      "========================================",
+      "PAY RULES",
+      "========================================",
+      "Hard floor: $45,000/year, equivalent to ~$21.63/hr at 40 hrs/week. Do not apply below this.",
+      "Preferred: $50,000/year or higher.",
+      "For posted hourly ranges: range qualifies if the TOP of the range meets or exceeds $21.63/hr (e.g., $20\u2013$25/hr qualifies; $18\u2013$20/hr does not).",
+      "For unposted pay: apply if the role is a strong skill match AND the employer is reputable; flag in log as \u201cpay not posted.\u201d",
+      "========================================",
+      "FRESHNESS",
+      "========================================",
+      "Prefer postings within last 7 days.",
+      "Up to 30 days acceptable if pickings are thin.",
+      "Skip postings older than 30 days.",
+      "Skip postings marked \u201cexpired\u201d or \u201cno longer accepting applications.\u201d",
+      "========================================",
+      "DUPLICATE CHECK",
+      "========================================",
+      "Before applying, check the Applications Log \u201cDO NOT RE-APPLY\u201d section at the top.",
+      "Do not re-apply to the same company within 30 days.",
+      "Exception: if the new role is materially different (different city, clearly different role type, different department), it\u2019s OK.",
+      "========================================",
+      "EMAIL VERIFICATION PROTOCOL",
+      "========================================",
+      "After each batch of submissions, wait 10\u201330 minutes for emails to land.",
+      "2. Check yourhandle@gmail.com AND personal@example.com.",
+      "3. For each confirmation email: capture sender address, subject line, timestamp.",
+      "4. Match the confirmation to the submitted application (by company name / role).",
+      "5. Only matched + confirmed entries get logged as VERIFIED.",
+      "6. Unmatched submissions: keep in IN-PROGRESS section of Applications Log for later follow-up.",
+      "========================================",
+      "LOG ENTRY FORMAT (required fields per confirmed application)",
+      "========================================",
+      "Date submitted (YYYY-MM-DD)",
+      "2. Company",
+      "3. Position title",
+      "4. Job location (city, ST)",
+      "5. Hiring office / branch location (if different)",
+      "6. Pay (as posted)",
+      "7. Source (Honest Jobs / ZipRecruiter / Indeed)",
+      "8. Job description (3\u20136 line summary: duties + key requirements)",
+      "9. Contact for follow-up: phone (local preferred, any working number acceptable) AND/OR recruiter email",
+      "10. Email confirmation: which inbox (Gmail/AOL), sender, subject line",
+      "11. Application URL",
+      "12. Status: VERIFIED"
+    ],
+    "travel_miles": 25,
+    "pay_floor": 45000
+  },
+  "assets": {
+    "vehicle": "",
+    "space": "",
+    "hidden_skills": []
+  },
+  "household": {
+    "adults": 0,
+    "children": ""
+  },
+  "health": {
+    "conditions": "",
+    "allergies": "",
+    "meal_goal": "",
+    "weekly_food_budget": ""
+  },
+  "spending": {
+    "recurring_costs": [
+      {
+        "label": "rent",
+        "amount_monthly": 1200,
+        "source": "the owner 2026-11-23"
+      },
+      {
+        "label": "household expenses",
+        "amount_monthly": 300,
+        "source": "the owner 2026-11-23"
+      }
+    ],
+    "buy_regularly": [],
+    "wardrobe_interest": "yes",
+    "wardrobe_budget": 0,
+    "_note": "groceries deliberately excluded - the owner has not given a food figure"
+  },
+  "wellbeing": {
+    "hobbies_pay": [],
+    "hobbies_relax": [],
+    "bored_behavior": "",
+    "idle_days": 0
+  },
+  "_intake": {
+    "completed": "2026-11-22",
+    "note": "Written by intake.py. Employment history and buckets are edited directly."
+  },
+  "wardrobe": {
+    "_note": "Reference photos for styling. Local only, never uploaded.",
+    "photos": {
+      "full_body": {
+        "path": null,
+        "purpose": "silhouette - what fits, full length, plain background",
+        "added": null
+      },
+      "torso": {
+        "path": null,
+        "purpose": "shirt fit at shoulder and sleeve, waist up",
+        "added": null
+      },
+      "face": {
+        "path": null,
+        "purpose": "colour and contrast only - this picks the palette",
+        "added": null
+      }
+    }
+  }
+}
