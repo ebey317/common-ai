@@ -31,7 +31,7 @@ import csv
 import json
 import os
 import sys
-from datetime import date, timedelta
+from datetime import date
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PROFILE = os.path.join(HERE, "profile.json")

@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Iterable
 
 from .schemas import ActionRecord, CapabilityReport, FindingRecord, ItemRecord
-from .waste import summary as waste_summary, human_bytes
+from .waste import summary as waste_summary
 
 
 def write_jsonl(path: str, records: Iterable[object]) -> None:
@@ -33,7 +33,7 @@ def write_summary(
         f"- Items: {len(items)}",
         f"- Findings: {len(findings)}",
         f"- Actions: {len(actions)}",
-        f"- Preview index: previews.md",
+        "- Preview index: previews.md",
         "",
         "## Adapters",
     ]

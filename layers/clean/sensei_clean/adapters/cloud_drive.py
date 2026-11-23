@@ -28,9 +28,9 @@ import json
 import os
 from abc import abstractmethod
 from pathlib import Path
-from typing import Iterator, List, Optional
+from typing import Iterator, Optional
 
-from ..schemas import AccessGrant, ActionRecord, ApplyResult, CapabilityReport, ItemRecord, UndoRecord
+from ..schemas import AccessGrant, ActionRecord, CapabilityReport, ItemRecord
 from .base import BaseAdapter
 
 

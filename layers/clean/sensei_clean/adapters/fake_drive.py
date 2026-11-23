@@ -23,12 +23,10 @@ Tokens for the fake are kept in-memory only; nothing is written to disk.
 """
 from __future__ import annotations
 
-import hashlib
-import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Iterator, List, Optional
 
-from ..schemas import AccessGrant, ActionRecord, ApplyResult, CapabilityReport, ItemRecord, UndoRecord
+from ..schemas import AccessGrant, ActionRecord, ApplyResult, ItemRecord, UndoRecord
 from .cloud_drive import CloudDriveAdapter
 
 

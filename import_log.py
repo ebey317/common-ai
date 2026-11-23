@@ -170,7 +170,9 @@ def main(argv):
         st[r["status"]] = st.get(r["status"], 0) + 1
 
     print("\n  total entries : %d   (log says %d)" % (len(rows), EXPECTED_TOTAL))
-    print("  by bucket     : " + "  ".join("%s=%d" % (k, counts.get(k, 0)) for k in ("dream", "trade", "adjacent", "floor")))
+    bucket_keys = ("dream", "trade", "adjacent", "floor")
+    print("  by bucket     : "
+          + "  ".join("%s=%d" % (k, counts.get(k, 0)) for k in bucket_keys))
     print("  by status     : " + "  ".join("%s=%d" % (k, st[k]) for k in sorted(st)))
     print("\n  excluded on purpose (%d):" % len(EXCLUDED))
     for name, why in EXCLUDED:

@@ -36,14 +36,17 @@ PROFILE = os.path.join(HERE, "profile.json")
 SECTIONS = [
     ("identity", "WHO YOU ARE", [
         {"k": "personal.full_name", "q": "Full legal name?", "feeds": "every document and application", "t": "str"},
-        {"k": "personal.phone", "q": "Best phone number?", "feeds": "applications, follow-up, interview scheduling", "t": "str"},
-        {"k": "personal.email", "q": "Email an agent can read? (not a private one)", "feeds": "confirmation emails, reply tracking", "t": "str"},
+        {"k": "personal.phone", "q": "Best phone number?",
+         "feeds": "applications, follow-up, interview scheduling", "t": "str"},
+        {"k": "personal.email", "q": "Email an agent can read? (not a private one)",
+         "feeds": "confirmation emails, reply tracking", "t": "str"},
         {"k": "personal.address_line1", "q": "Street address?", "feeds": "applications, commute distance", "t": "str"},
         {"k": "personal.city", "q": "City?", "feeds": "job radius", "t": "str"},
         {"k": "personal.state", "q": "State (2 letters)?", "feeds": "job radius, tax forms", "t": "str"},
         {"k": "personal.zip", "q": "ZIP?", "feeds": "job radius, local programs", "t": "str"},
         {"k": "personal.github", "q": "GitHub (or blank)?", "feeds": "your only free proof-of-work link", "t": "str"},
-        {"k": "personal.website", "q": "Website or portfolio (or blank)?", "feeds": "credibility on every application", "t": "str"},
+        {"k": "personal.website", "q": "Website or portfolio (or blank)?",
+         "feeds": "credibility on every application", "t": "str"},
     ]),
 
     ("money_in", "MONEY IN - asked first, it is why you came", [
@@ -121,7 +124,8 @@ SECTIONS = [
          "feeds": "savings suggestions - finds the subscriptions you forgot", "t": "list"},
         {"k": "spending.buy_regularly", "q": "What do you buy over and over?",
          "feeds": "shopping watch - flags when it is cheaper", "t": "list"},
-        {"k": "spending.wardrobe_interest", "q": "Want outfit suggestions? You send a photo, it shows you looks on you.",
+        {"k": "spending.wardrobe_interest",
+         "q": "Want outfit suggestions? You send a photo, it shows you looks on you.",
          "choices": ["yes", "no", "maybe later"], "feeds": "the wardrobe layer", "t": "choice"},
         {"k": "spending.wardrobe_budget", "q": "If yes - what is a fair amount for a few outfits? (dollars)",
          "when": [("spending.wardrobe_interest", ["yes", "maybe later"])],

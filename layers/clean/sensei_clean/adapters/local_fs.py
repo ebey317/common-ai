@@ -204,7 +204,6 @@ class LocalFSAdapter(BaseAdapter):
         )
 
     def _classify(self, path: Path, mime: str) -> tuple[str, str]:
-        name = path.name.lower()
         full_path = str(path).lower()
         if any(token in full_path for token in ("resume", "cv", "career", "cover_letter", "transcript")):
             return "career", "Career"

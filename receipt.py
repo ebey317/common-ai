@@ -21,7 +21,7 @@ import csv
 import json
 import os
 import sys
-from datetime import date, timedelta
+from datetime import date
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 LEDGER = os.path.join(HERE, "ledger.csv")
@@ -160,7 +160,6 @@ def main(argv):
         rows = list(csv.DictReader(open(LEDGER, encoding="utf-8"))) if os.path.exists(LEDGER) else []
         iv = [r for r in rows if r.get("status") == "interview"]
         rej = [r for r in rows if r.get("status") == "rejected"]
-        opps = _json(OPPS, {}).get("opportunities", [])
 
         sc = []
         sc.append(("30 DAYS", "THE FULL BREAKDOWN",
