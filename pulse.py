@@ -29,7 +29,52 @@ import time
 HERE = os.path.dirname(os.path.abspath(__file__))
 STANDARDS = os.path.join(HERE, "standards.json")
 STATE = os.path.join(HERE, ".pulse_state.json")
+LOCK = os.path.join(HERE, ".pulse.lock")
 PY = sys.executable
+
+# A pulse run that dies mid-flight must not wedge the scheduler forever, so a
+# lock older than this is treated as abandoned and taken over.
+LOCK_STALE_SECONDS = 1800
+
+
+def acquire_lock():
+    """One runner at a time, atomically.
+
+    Two overlapping runs both read the state, both decide a layer is due, and
+    both process the same messages before either writes a timestamp. Nothing
+    errors - you just get the work done twice. O_CREAT|O_EXCL makes the claim
+    atomic at the filesystem level, so only one caller can win it.
+    """
+    for attempt in (0, 1):
+        try:
+            fd = os.open(LOCK, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644)
+        except FileExistsError:
+            if attempt:
+                return False
+            try:
+                age = time.time() - os.path.getmtime(LOCK)
+            except OSError:
+                return False
+            if age < LOCK_STALE_SECONDS:
+                return False
+            try:
+                os.remove(LOCK)          # abandoned by a dead run
+            except OSError:
+                return False
+            continue
+        try:
+            os.write(fd, str(os.getpid()).encode())
+        finally:
+            os.close(fd)
+        return True
+    return False
+
+
+def release_lock():
+    try:
+        os.remove(LOCK)
+    except OSError:
+        pass
 
 
 def load_state():
@@ -114,6 +159,22 @@ def due_map(st, cad):
 
 
 def main(argv):
+    # --status only reads, so it never takes the lock and is never blocked by a
+    # run in progress.
+    if "--status" in argv:
+        return _run(argv)
+    if not acquire_lock():
+        print("another pulse run is already working - exiting clean.")
+        print("  it owns the timestamps, so this run does nothing instead of")
+        print("  repeating its work.")
+        return 0
+    try:
+        return _run(argv)
+    finally:
+        release_lock()
+
+
+def _run(argv):
     st = load_state()
     cad = cadence()
     due = due_map(st, cad)

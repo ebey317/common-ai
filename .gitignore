@@ -36,3 +36,4 @@ venv/
 
 # os
 .DS_Store
+.pulse.lock
