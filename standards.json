@@ -30,8 +30,8 @@
       "Example Former Employer A",
       "Example Former Employer C"
     ],
-    "source": "the owner, 2026-11-22",
-    "why": "Sub-90-day stints, and an open IOSHA complaint CASE-000000 against one of them.",
+    "source": "the owner, 2026-11-23",
+    "why": "Do not apply there - fired from them, or not good people to work for. Blocks NEW applications only. Closed entries stay in the ledger because application forms and background checks require full history. The real names live in the gitignored profile; these are examples.",
     "replacement": "${staffing_period} - contract and staffing block, undated by employer"
   },
   "pay": {

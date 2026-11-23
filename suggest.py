@@ -224,16 +224,33 @@ def s_project(inv, prof):
 
 
 def s_violations(std, rows):
-    """Is the ledger breaking a rule the owner set? Cheapest possible audit."""
+    """Employers the owner will not work for.
+
+    The never-list means DO NOT APPLY THERE - the owner was fired from them or
+    they are not good people to work for. It does NOT mean the record is
+    erased: application forms and background checks require full history, so a
+    closed entry sitting in the ledger is history, not a rule breach. Only a
+    LIVE application at a banned employer is the violation.
+    """
     out = []
+    # The public standards.json carries placeholder examples; the real list is
+    # personal and lives in the gitignored profile. Merge both so a clone gets
+    # the rule and the owner gets their actual names.
     banned = set(std.get("never_list_employers", {}).get("value", []))
+    banned |= set(_json(PROFILE, {}).get("never_list_employers") or [])
+    alive = {"applied", "aged", "interview"}
     for r in rows:
-        if r.get("company") in banned:
-            out.append({
-                "pri": 120, "kind": "RULE",
-                "text": "%s is on your never-list but sits in the ledger." % r.get("company"),
-                "action": "Remove it and fold the work into the staffing block.",
-            })
+        company = r.get("company")
+        if company not in banned or r.get("status") not in alive:
+            continue
+        out.append({
+            "pri": 120, "kind": "RULE",
+            "text": "%s is on your never-list and still has a live application."
+                    % company,
+            "action": "Close it out. The never-list means do not apply there - "
+                      "not good people to work for, or they fired you. Closed "
+                      "history stays in the ledger; forms require full disclosure.",
+        })
     return out
 
 

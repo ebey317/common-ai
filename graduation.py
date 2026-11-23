@@ -92,6 +92,108 @@ def evaluate(layer, spec, prof, st):
     return False, "unknown check %r" % check
 
 
+def profile():
+    return _json(PROFILE, {})
+
+
+def _save_profile(prof):
+    tmp = PROFILE + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as fh:
+        json.dump(prof, fh, indent=2)
+        fh.flush()
+        os.fsync(fh.fileno())
+    os.replace(tmp, PROFILE)
+
+
+# A retirement is a CLAIM ABOUT THE WORLD, and the world moves. Retiring the
+# job search because you are employed is correct until the day you are not.
+# So retirement is never permanent-by-default: every status run re-checks it,
+# and any layer whose reason has gone is reported as stale and woken.
+def stale_retirements(prof, st):
+    """Retired layers whose retire condition no longer holds."""
+    out = []
+    for name, spec in definitions().items():
+        if name.startswith("_") or not isinstance(spec, dict):
+            continue
+        if st.get(name, {}).get("state", spec.get("state", "on")) == "on":
+            continue
+        if not spec.get("check"):
+            continue          # statement-only layers cannot be rechecked
+        met, why = evaluate(name, spec, prof, st)
+        if not met:
+            out.append((name, why))
+    return out
+
+
+def cmd_wake(layer):
+    """Bring back a retired layer whose reason no longer holds."""
+    spec = definitions().get(layer)
+    if not isinstance(spec, dict):
+        print("unknown layer %r. known: %s"
+              % (layer, ", ".join(n for n in definitions() if not n.startswith("_"))))
+        return 2
+    st = state()
+    if st.get(layer, {}).get("state", "on") != "off":
+        print("%s is already on - nothing to wake." % layer)
+        return 0
+
+    prof = profile()
+    met, why = evaluate(layer, spec, prof, st)
+    if met and spec.get("check"):
+        print("%s stays retired: %s" % (layer, why))
+        print("  The condition that retired it still holds. Restoring is still")
+        print("  free - use --restore if you want it back anyway.")
+        return 1
+
+    st.setdefault(layer, {})
+    st[layer]["state"] = "on"
+    st[layer]["restored"] = date.today().isoformat()
+    st[layer]["woke_because"] = why
+    _save_state(st)
+    print("woke %s." % layer)
+    print("  because: %s" % why)
+    print("  restored: %s" % st[layer]["restored"])
+    return 0
+
+
+def cmd_employment_ended(employer, end_date):
+    """Record that a job ended, then wake whatever that change un-retires.
+
+    This is the counterpart to retiring: the same event that justifies turning
+    the job search off justifies turning it back on, and doing only the first
+    is how a system ends up confidently idle while someone is unemployed.
+    """
+    prof = profile()
+    target = None
+    for e in prof.get("employment", []):
+        if e.get("end"):
+            continue
+        name = str(e.get("employer") or "")
+        if employer and employer.lower() not in name.lower():
+            continue
+        target = e
+        break
+
+    if target is None:
+        print("no current employment found%s."
+              % (" matching %r" % employer if employer else ""))
+        print("  Current jobs are the entries with no end date.")
+        return 2
+
+    target["end"] = end_date
+    _save_profile(prof)
+    print("recorded: %s ended %s" % (target.get("employer", "?"), end_date))
+
+    woke = 0
+    for name, why in stale_retirements(prof, state()):
+        print("  %s was retired, but: %s" % (name, why))
+        if cmd_wake(name) == 0:
+            woke += 1
+    if not woke:
+        print("  no retired layer needed waking.")
+    return 0
+
+
 # ---------------------------------------------------------------- commands
 def cmd_status():
     specs = definitions()
@@ -103,6 +205,7 @@ def cmd_status():
     print("=" * 70)
 
     on = off = 0
+    stale = []
     for name, spec in specs.items():
         if name.startswith("_") or not isinstance(spec, dict):
             continue
@@ -116,6 +219,15 @@ def cmd_status():
         if not running:
             print("     retired     : %s" % rec.get("off_since", "?"))
             print("     on your word: \"%s\"" % rec.get("off_claimed", "?"))
+            # Recheck the reason. Skipping evaluate() for retired layers was
+            # the bug: a retirement that stopped being true stayed silent.
+            met, why = evaluate(name, spec, prof, st)
+            if spec.get("check") and not met:
+                stale.append((name, why))
+                print("     STATUS      : STALE - %s" % why)
+                print("     wake it     : python3 graduation.py --wake %s" % name)
+            else:
+                print("     still true  : %s" % why)
             continue
         met, why = evaluate(name, spec, prof, st)
         print("     retires when: %s" % spec.get("retire_when", "?"))
@@ -124,6 +236,11 @@ def cmd_status():
 
     print("\n" + "-" * 70)
     print("  running: %d   |   retired: %d" % (on, off))
+    if stale:
+        print("  %d retired layer(s) no longer justified:" % len(stale))
+        for n, why in stale:
+            print("    %s - %s" % (n, why))
+        print("  Wake them with --wake, or record the change with --employment-ended.")
     if off == 0:
         print("  Level 0 - everything is on. This is the right place to start.")
     elif on == 0:
@@ -212,6 +329,17 @@ def cmd_restore(layer):
 
 
 def main(argv):
+    if "--employment-ended" in argv:
+        i = argv.index("--employment-ended")
+        employer = argv[i + 1] if i + 1 < len(argv) and not argv[i + 1].startswith("--") else ""
+        end_date = date.today().isoformat()
+        if "--on" in argv:
+            j = argv.index("--on")
+            end_date = argv[j + 1] if j + 1 < len(argv) else end_date
+        return cmd_employment_ended(employer, end_date)
+    if "--wake" in argv:
+        i = argv.index("--wake")
+        return cmd_wake(argv[i + 1] if i + 1 < len(argv) else "")
     if "--retire" in argv:
         i = argv.index("--retire")
         layer = argv[i + 1] if i + 1 < len(argv) else ""
