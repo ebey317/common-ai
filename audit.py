@@ -55,11 +55,22 @@ def _json(path, default):
 
 
 def _days(d):
-    """Days since an ISO date, or None."""
+    """Days since an ISO date, or None if unparseable."""
     try:
         return (date.today() - date.fromisoformat(str(d)[:10])).days
     except Exception:
         return None
+
+
+def _age(d):
+    """Days since an ISO date, treating unparseable as very old.
+
+    NOTE: never write `_days(x) or FALLBACK`. An application submitted TODAY
+    returns 0, which is falsy, so `or 999` silently drops it and today's work
+    never counts toward any window. Zero is a valid age; only None is missing.
+    """
+    age = _days(d)
+    return 999 if age is None else age
 
 
 def finding(sev, area, text, action):
@@ -135,7 +146,7 @@ def check_drift(prof, rows, std):
     per_bucket = std.get("lifecycle", {}).get("per_bucket_per_run", {})
     target = per_bucket.get("value") if isinstance(per_bucket, dict) else None
     if target:
-        recent = [r for r in rows if (_days(r.get("applied")) or 999) <= 7]
+        recent = [r for r in rows if _age(r.get("applied")) <= 7]
         if len(recent) > target * 4:
             out.append(finding(
                 "P2", "drift",

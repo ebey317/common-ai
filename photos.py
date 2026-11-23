@@ -47,8 +47,19 @@ def _load():
 
 
 def _save(p):
-    with open(PROFILE, "w", encoding="utf-8") as fh:
+    """Write the profile atomically.
+
+    A direct open(PROFILE, "w") truncates the file before the new JSON is
+    written, so a crash or a full disk leaves an empty profile - the one file
+    everything else reads. Write to a sibling temp file, fsync, then rename,
+    which is atomic on the same filesystem.
+    """
+    tmp = PROFILE + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as fh:
         json.dump(p, fh, indent=2)
+        fh.flush()
+        os.fsync(fh.fileno())
+    os.replace(tmp, PROFILE)
 
 
 def _wardrobe(prof):

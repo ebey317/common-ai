@@ -109,13 +109,26 @@ def check():
                 else ("401 - token rejected" if "401" in msg else msg[:60])
             rows.append((label, "broken", short))
 
-    # docs + sheets have no cheap bare probe: use drive to confirm they exist
+    # Docs and Sheets deserve a real probe, not a Drive listing. Enumerating a
+    # document through Drive says the DRIVE API works; it says nothing about
+    # whether the Docs API is enabled or its scope granted. So find one real
+    # file, then call the service that would actually be used.
     try:
         s = _svc("drive", "v3")
         doc = s.files().list(q="mimeType='%s'" % DOC_MIME, pageSize=1,
                              fields="files(id)").execute()
-        rows.append(("docs", "ok", "can enumerate documents"
-                     if doc.get("files") else "API ok, no documents found"))
+        found = doc.get("files") or []
+        if not found:
+            rows.append(("docs", "degraded",
+                         "no document to probe - Docs API unverified"))
+        else:
+            ds = _svc("docs", "v1")
+            if ds is None:
+                rows.append(("docs", "broken", "could not build docs client"))
+            else:
+                ds.documents().get(
+                    documentId=found[0]["id"], fields="documentId").execute()
+                rows.append(("docs", "ok", "live documents.get succeeded"))
     except Exception as exc:
         rows.append(("docs", "broken", str(exc)[:60]))
 
@@ -124,8 +137,17 @@ def check():
         sh = s.files().list(
             q="mimeType='application/vnd.google-apps.spreadsheet'",
             pageSize=1, fields="files(id)").execute()
-        rows.append(("sheets", "ok", "can enumerate spreadsheets"
-                     if sh.get("files") else "API ok, no spreadsheets found"))
+        found = sh.get("files") or []
+        if not found:
+            rows.append(("sheets", "degraded",
+                         "no spreadsheet to probe - Sheets API unverified"))
+        else:
+            ss = _svc("sheets", "v4")
+            if ss is None:
+                rows.append(("sheets", "broken", "could not build sheets client"))
+            else:
+                ss.spreadsheets().get(spreadsheetId=found[0]["id"]).execute()
+                rows.append(("sheets", "ok", "live spreadsheets.get succeeded"))
     except Exception as exc:
         rows.append(("sheets", "broken", str(exc)[:60]))
 
