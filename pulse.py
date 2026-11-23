@@ -63,8 +63,11 @@ def layers():
         "ledger_age": (lambda: run([PY, "ledger.py", "age"]), True),
         "token_watch": (lambda: run(["bash", os.path.expanduser(
             "~/.hermes/scripts/google_workspace_token_check.sh")]), True),
-        "email_triage": (None, False),
-        "drive_organize": (None, False),
+        "email_triage": (lambda: run([PY, os.path.join("layers", "email", "triage.py"),
+                                      "--days", "1"]), True),
+        "drive_organize": (lambda: run([PY, os.path.join("layers", "clean",
+                                                         "sensei_clean_cli.py"),
+                                        "status"]), True),
         "weekly_audit": (None, False),
     }
 
