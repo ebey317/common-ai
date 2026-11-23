@@ -41,6 +41,36 @@ account **you** authorize.
 
 ---
 
+## Let an assistant do the setup
+
+You can hand this repo to an AI assistant and say "clone it and set it up." It has what it
+needs to do that without guessing:
+
+```bash
+git clone https://github.com/ebey317/common-ai
+cd common-ai
+python3 setup.py
+```
+
+`setup.py` checks the environment, smoke-tests every module **in a temp copy so your real
+files are never touched**, and prints one next action. Its exit code is the instruction:
+
+| exit | meaning |
+|---|---|
+| `0` | ready — the whole loop works |
+| `1` | a check failed; the `FAIL` line names it |
+| `2` | usable, but it needs a person to answer something |
+
+The one step an assistant cannot do for you is `python3 intake.py`. `profile.json` is the
+source of truth and it comes from a human answering ~33 questions. A made-up date or a
+guessed number there poisons every document rendered from it, so it stays a conversation.
+
+Two things worth telling any assistant you hand this to: it must not submit applications on
+your behalf (automated applying breaks Indeed's and ZipRecruiter's terms, and a banned
+account strands your whole search), and it must not invent a fact to fill a gap.
+
+---
+
 ## What it actually prints
 
 Real output, from `ledger.py seed` on a clean clone. Not a mockup.
