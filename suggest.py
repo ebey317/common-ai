@@ -16,6 +16,7 @@ suggestion trustworthy instead of a chatbot guessing.
 
 Ranked by consequence:
   110  a live interview invite - outranks everything, it is the whole point
+   95  an opportunity closing within two weeks
   100  a bucket with nothing live - the search has a hole in it
    90  an application at its 90-day check
    80  an expired application that needs replacing
@@ -38,6 +39,7 @@ LEDGER = os.path.join(HERE, "ledger.csv")
 INVENTORY = os.path.join(HERE, "inventory.json")
 STATE = os.path.join(HERE, "intake_state.json")
 STANDARDS = os.path.join(HERE, "standards.json")
+OPPS = os.path.join(HERE, "opportunities.json")
 
 ALIVE = {"applied", "aged"}
 
@@ -235,6 +237,61 @@ def s_violations(std, rows):
     return out
 
 
+def s_opportunities(today):
+    """Money in. Grants and programs that are open, matching, and closing."""
+    data = _json(OPPS, {})
+    out = []
+    for o in data.get("opportunities", []):
+        if o.get("status") not in ("open", "eligible", "not_started"):
+            continue
+        dl = o.get("deadline")
+        pri, when = 45, ""
+        if dl:
+            try:
+                left = (date.fromisoformat(dl) - today).days
+                if left < 0:
+                    continue
+                if left <= 14:
+                    pri = 95
+                    when = " - closes in %d day%s" % (left, "" if left == 1 else "s")
+                else:
+                    when = " - closes %s" % dl
+            except Exception:
+                when = ""
+        amt = o.get("amount")
+        head = "%s%s" % (o.get("name"), (" ($%s%s)" % (amt, when)) if amt else when)
+        if not o.get("verified", False):
+            head += " [unverified - check before relying on it]"
+        out.append({
+            "pri": pri, "kind": "money",
+            "text": head,
+            "action": o.get("next_action") or "Look at it and decide.",
+        })
+    return out
+
+
+def s_money_blind(prof, today):
+    """The honest one: name the suggestion it cannot make, and what fills it."""
+    sp = prof.get("spending", {})
+    hh = prof.get("household", {})
+    ast = prof.get("assets", {})
+    missing = []
+    if not sp.get("recurring_costs"):
+        missing.append("monthly bills")
+    if not hh.get("adults") and not hh.get("children"):
+        missing.append("how many people you feed")
+    if not ast.get("vehicle"):
+        missing.append("your vehicle")
+    if not missing:
+        return []
+    return [{
+        "pri": 40, "kind": "money",
+        "text": "I can't find cheaper living for you yet - I'm missing %s." % ", ".join(missing),
+        "action": "python3 intake.py fills it. Then this line becomes '$X/month, here are "
+                  "the switches' instead of an apology.",
+    }]
+
+
 def s_intake_gaps(st):
     """Blank answers make other outputs a guess. Name them."""
     answers = st.get("answers", {})
@@ -297,6 +354,8 @@ def gather():
     items += s_expired(rows, today, expire_days)
     items += s_idle(prof, rows, today, std)
     items += s_spend_window(prof, today)
+    items += s_opportunities(today)
+    items += s_money_blind(prof, today)
     items += s_project(inv, prof)
     items += s_intake_gaps(st)
     items += s_time_bombs(prof, today)
