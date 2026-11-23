@@ -135,6 +135,52 @@ def smoke():
         shutil.rmtree(tmp, ignore_errors=True)
 
 
+def demo():
+    """Run the entire loop in a temp copy and print what it makes.
+
+    The first run of any tool should succeed. Requiring 33 answers before a
+    person can see anything work is the install friction that loses them, so
+    this shows the finished product on example data with zero side effects -
+    their own profile and ledger are never touched.
+    """
+    tmp = tempfile.mkdtemp(prefix="commonai-demo-")
+    try:
+        for f in os.listdir(HERE):
+            src = os.path.join(HERE, f)
+            if os.path.isfile(src) and (f.endswith(".py") or f.endswith(".json")):
+                shutil.copy2(src, os.path.join(tmp, f))
+        ex = os.path.join(HERE, "profile.example.json")
+        if os.path.exists(ex):
+            shutil.copy2(ex, os.path.join(tmp, "profile.json"))
+
+        steps = [
+            ("seed sample applications", [PY, "ledger.py", "seed"]),
+            ("render a resume from the profile", [PY, "profile.py", "resume", "trade"]),
+            ("what needs you today", [PY, "suggest.py"]),
+            ("is the record still true", [PY, "audit.py", "--brief"]),
+        ]
+        print("  DEMO - running in %s\n" % tmp)
+        print("  (example data. Your own files are not touched.)\n")
+        for title, cmd in steps:
+            print("=" * 66)
+            print("  %s" % title.upper())
+            print("=" * 66)
+            r = subprocess.run(cmd, cwd=tmp, capture_output=True, text=True, timeout=120)
+            out = (r.stdout or "").strip()
+            for line in out.splitlines()[:14]:
+                print("  %s" % line)
+            if r.returncode not in (0, 1):
+                print("  [exit %d] %s" % (r.returncode, (r.stderr or "").strip()[:120]))
+            print()
+        print("-" * 66)
+        print("  That is the whole product, on example data.")
+        print("\n  To make it yours:   python3 intake.py")
+        print("  It asks ~33 questions and writes profile.json.")
+        return 0
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
 def next_step(has_prof):
     print("\n" + "-" * 66)
     if fail:
@@ -156,6 +202,8 @@ def next_step(has_prof):
 
 
 def main(argv):
+    if "--demo" in argv:
+        return demo()
     print("=" * 66)
     print("  COMMON AI - setup check")
     print("=" * 66)

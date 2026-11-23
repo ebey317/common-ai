@@ -8,36 +8,66 @@ Zero dependencies. Pure Python standard library. No API keys, no network calls, 
 
 ---
 
-## Start here (five minutes)
+## Start here
 
-You need Python 3.8 or newer and nothing else. No pip install, no account, no key.
+You need **Python 3.8 or newer and nothing else.** No pip install, no account, no API key,
+no signup. Clone it and it runs.
+
+**1. See it work — one command, nothing written to your files.**
 
 ```bash
 git clone https://github.com/ebey317/common-ai
 cd common-ai
-python3 intake.py          # the setup interview. ~33 questions, resumable,
-                           # every question prints what it feeds. Writes profile.json
-python3 profile.py resume trade    # render a resume from what you just answered
-python3 suggest.py         # the morning list: what actually needs you today
-python3 ledger.py report   # the application pipeline and where it stands
+python3 setup.py --demo
 ```
 
-That is the whole loop. Answers go in once; the documents, the ranked list, and the
-pipeline all come out of the same file, so they cannot disagree with each other.
+That prints a real resume, the ranked morning list, and a live audit, generated from example
+data in a temp directory. Your own files are never touched. If this succeeds, the install is
+sound.
 
-Use it every day:
+**2. Make it yours.**
+
+```bash
+python3 intake.py
+```
+
+~33 questions across six sections. Resumable, and every question prints what it feeds, so
+you can skip what does not change an output. It writes `profile.json` — the one file
+everything else reads.
+
+**3. Confirm.**
+
+```bash
+python3 setup.py
+```
+
+Exit `0` means ready. Exit `2` means it is working but waiting on you. Exit `1` prints the
+exact check that failed.
+
+**Then the daily loop:**
 
 ```bash
 python3 suggest.py            # ranked, traceable, no model call
+python3 profile.py resume trade    # a resume rendered from the profile
+python3 ledger.py report      # the pipeline and where it stands
 python3 audit.py --brief      # is the record still true
-python3 pulse.py --status     # which layers are due, which have never run
+python3 pulse.py --status     # which layers are due, which never ran
 python3 vault.py --backup     # put the private files in your own cloud
 ```
 
 On a new machine, the same repo plus `python3 vault.py --restore` brings the record back.
+Nothing leaves your machine unless you run `vault.py`, and that only goes to a cloud account
+**you** authorize.
 
-Nothing leaves your machine unless you run `vault.py`, and that only goes to a cloud
-account **you** authorize.
+### If something goes wrong
+
+| What you see | What it means |
+|---|---|
+| `No profile.json yet` | Normal before step 2. Run `python3 intake.py`. |
+| `python3: command not found` | Install Python 3.8+. Nothing else is needed. |
+| `profile.json exists but could not be read` | The file was hand-edited or truncated. Re-run `python3 intake.py`. |
+| `vault: no cloud provider is configured` | Expected unless you set one up. Everything else works without it. |
+| Anything mentioning `Traceback` | Not normal — that is a bug. `python3 setup.py` will tell you which module. |
 
 ---
 
