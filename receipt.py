@@ -56,8 +56,11 @@ def breakdown(fee):
     interviews = [r for r in rows if r.get("status") == "interview"]
     live = [r for r in rows if r.get("status") in ("applied", "aged")]
 
-    proof = ("received", "invite", "interview", "declined", "cancel",
-             "application #", "offer")
+    # A reply the employer actually sent. Negative outcomes are NOT proof of a
+    # reply - "declined" and "cancelled" appear in notes written by the user
+    # after the fact, and counting them would inflate the reply rate that this
+    # whole receipt uses to argue the system is working.
+    proof = ("received", "invite", "interview", "application #", "offer")
     verified = [r for r in rows
                 if any(p in (r.get("notes") or "").lower() for p in proof)]
 
@@ -111,7 +114,9 @@ def report(f):
         len(f["interviews"]), ", ".join(str(x) for x in f["interviews"][:4]) or "none"))
     a("    %d applications tracked, %d with a real employer reply"
       % (f["total"], f["verified"]))
-    a("    %d open grants worth up to $%s" % (f["open_grants"], format(f["grant_value"], ",")))
+    a("    %d open grant%s worth up to $%s"
+      % (f["open_grants"], "" if f["open_grants"] == 1 else "s",
+         format(f["grant_value"], ",")))
     if f["rent_drop"]:
         a("    a cheaper living path: $%d/mo = $%s/yr"
           % (f["rent_drop"], format(f["rent_drop_year"], ",")))
@@ -124,11 +129,14 @@ def report(f):
     a("    $%d/month  =  $%s/year" % (f["fee"], format(f["annual_fee"], ",")))
 
     a("\n  WHAT THAT FEE IS WORTH")
+    years = int(f["grant_value"] / f["annual_fee"]) if f["annual_fee"] else 0
     if f["grant_value"]:
-        a("    one open grant ($%s) covers %d years of the fee"
-          % (format(f["grant_value"], ","),
-             int(f["grant_value"] / f["annual_fee"]) if f["annual_fee"] else 0))
-    if f["rent_drop_year"]:
+        # grant_value is the SUM of open grants, not a single award. Calling it
+        # "one grant" would overstate the cheapest possible win.
+        label = "open grants total" if f["open_grants"] > 1 else "one open grant"
+        a("    %s ($%s) covers %d years of the fee"
+          % (label, format(f["grant_value"], ","), years))
+    if f["rent_drop_year"] and f["annual_fee"]:
         a("    the rent drop is %dx the annual fee, every year"
           % int(f["rent_drop_year"] / f["annual_fee"]))
     if f["interviews"]:

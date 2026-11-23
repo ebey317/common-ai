@@ -78,10 +78,11 @@ def check():
 
     rows.append(("token file", "ok" if has_refresh else "broken",
                  "refresh token present" if has_refresh else "no refresh token - dies on next refresh"))
+    # Age is a hint, never a verdict. The client can refresh a token in memory
+    # without rewriting the file, so an old mtime does not prove a dead token -
+    # only the live probes below can declare that. Age at most warns.
     state = "ok"
-    if age_days >= TESTING_CAP_DAYS:
-        state = "broken"
-    elif age_days >= TESTING_CAP_DAYS - 2:
+    if age_days >= TESTING_CAP_DAYS - 2:
         state = "degraded"
     rows.append(("token age", state,
                  "%d days old%s" % (age_days,

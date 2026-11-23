@@ -335,18 +335,22 @@ def gather():
             rows = list(csv.DictReader(fh))
 
     items = []
-    for name, err in INPUT_ERRORS:
-        items.append(finding(
-            "P0", "input",
-            "%s exists but could not be read (%s)." % (name, err),
-            "Every check that depends on it just ran on empty data, so this "
-            "audit cannot say the record is clean. Fix the file and re-run."))
     items += check_time_bombs(prof)
     items += check_drift(prof, rows, std)
     items += check_lifecycle(rows, std)
     items += check_unlogged(rows)
     items += check_standards(std)
     items += check_layers(std)
+
+    # Collected LAST, not first. The check_* helpers read further inputs of
+    # their own (pulse state), so draining INPUT_ERRORS before they ran would
+    # miss exactly the errors they produce.
+    for name, err in INPUT_ERRORS:
+        items.append(finding(
+            "P0", "input",
+            "%s exists but could not be read (%s)." % (name, err),
+            "Every check that depends on it just ran on empty data, so this "
+            "audit cannot say the record is clean. Fix the file and re-run."))
 
     order = {"P0": 0, "P1": 1, "P2": 2}
     items.sort(key=lambda x: order.get(x["sev"], 9))
