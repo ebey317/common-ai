@@ -2,7 +2,6 @@
   "_note": "the owner's standards, as data. The code reads this file; it does not hardcode thresholds. Every rule carries a source so a rule can be challenged instead of silently obeyed. Change a value here and every module follows - no code edit.",
   "_schema": "1.0",
   "_updated": "2026-11-23",
-
   "gates": {
     "_note": "Hard stops. A posting that requires any of these does not get applied to by the system. It gets handed to the owner.",
     "felony_free_text": {
@@ -25,63 +24,146 @@
       "why": "An inflated degree is checkable and is a standard disqualifier."
     }
   },
-
   "never_list_employers": {
-    "value": ["Example Former Employer B", "Example Former Employer A", "Example Former Employer C"],
+    "value": [
+      "Example Former Employer B",
+      "Example Former Employer A",
+      "Example Former Employer C"
+    ],
     "source": "the owner, 2026-11-22",
     "why": "Sub-90-day stints, and an open IOSHA complaint CASE-000000 against one of them.",
     "replacement": "${staffing_period} - contract and staffing block, undated by employer"
   },
-
   "pay": {
     "_note": "Floors are gross hourly except dream, which is annual.",
-    "trade": {"min_hourly": 20.00, "note": "top of range clears $21.63", "source": "AI Query doc PAY RULE"},
-    "adjacent": {"min_hourly": 20.00, "source": "AI Query doc PAY RULE"},
-    "floor": {"min_hourly": null, "note": "same-day or weekly pay is the bar, not the rate", "source": "the owner"},
-    "dream": {"min_annual": 90000, "source": "the owner: won't switch under $65K+, dream is six figures"}
+    "trade": {
+      "min_hourly": 20.0,
+      "note": "top of range clears $21.63",
+      "source": "AI Query doc PAY RULE"
+    },
+    "adjacent": {
+      "min_hourly": 20.0,
+      "source": "AI Query doc PAY RULE"
+    },
+    "floor": {
+      "min_hourly": null,
+      "note": "same-day or weekly pay is the bar, not the rate",
+      "source": "the owner"
+    },
+    "dream": {
+      "min_annual": 90000,
+      "source": "the owner: won't switch under $65K+, dream is six figures"
+    }
   },
-
   "commute_radius_miles": {
-    "trade": 40, "adjacent": 40, "floor": 20, "dream": null,
+    "trade": 40,
+    "adjacent": 40,
+    "floor": 20,
+    "dream": null,
     "source": "AI Query doc; dream is remote-ok so no radius"
   },
-
   "lifecycle": {
-    "check_days": {"value": 90, "source": "the owner: ninety-day check"},
-    "expire_days": {"value": 180, "source": "the owner: jobs are good about six months, two checks"},
-    "reapply_window_days": {"value": 30, "source": "AI Query doc do-not-reapply"},
-    "per_bucket_per_run": {"value": 3, "source": "the owner: three of each, four buckets, twelve a month"},
-    "rotate_each_week": {"value": true, "source": "the owner: one bucket rests each week"},
-    "clock_runs_when_employed": {"value": true, "source": "the owner: employment never pauses the clock"}
+    "check_days": {
+      "value": 90,
+      "source": "the owner: ninety-day check"
+    },
+    "expire_days": {
+      "value": 180,
+      "source": "the owner: jobs are good about six months, two checks"
+    },
+    "reapply_window_days": {
+      "value": 30,
+      "source": "AI Query doc do-not-reapply"
+    },
+    "per_bucket_per_run": {
+      "value": 3,
+      "source": "the owner: three of each, four buckets, twelve a month"
+    },
+    "rotate_each_week": {
+      "value": true,
+      "source": "the owner: one bucket rests each week"
+    },
+    "clock_runs_when_employed": {
+      "value": true,
+      "source": "the owner: employment never pauses the clock"
+    }
   },
-
   "resume": {
-    "min_tenure_days": {"value": 90, "source": "the owner: under 90 days does not go on the resume"},
-    "short_stint": {"value": "no dated entry; fold into the hands-on line", "source": "the owner + skill"},
-    "forms_require_full_history": {"value": true, "source": "omitting a job on a form is a disqualifier"}
+    "min_tenure_days": {
+      "value": 90,
+      "source": "the owner: under 90 days does not go on the resume"
+    },
+    "short_stint": {
+      "value": "no dated entry; fold into the hands-on line",
+      "source": "the owner + skill"
+    },
+    "forms_require_full_history": {
+      "value": true,
+      "source": "omitting a job on a form is a disqualifier"
+    }
   },
-
   "email": {
-    "agent_readable": {"value": "gmail", "source": "elijah: Gmail is the address the system reads"},
+    "agent_readable": {
+      "value": "gmail",
+      "source": "elijah: Gmail is the address the system reads"
+    },
     "aol": {
       "value": "read_by_explicit_instruction_only",
       "source": "the owner opened it 2026-11-23; previously private, never monitored",
       "why": "Personal inbox. Reading it is a standing exception, not a default."
     },
-    "never_apply_with": {"value": ["theuti_bey@outlook.com"], "source": "unverified identity"}
+    "never_apply_with": {
+      "value": [
+        "theuti_bey@outlook.com"
+      ],
+      "source": "unverified identity"
+    }
   },
-
   "answers_only_elijah_gives": {
-    "value": ["felony explanation", "WOTC/tax-credit legality question", "salary expectation free text", "why-are-you-leaving narrative"],
+    "value": [
+      "felony explanation",
+      "WOTC/tax-credit legality question",
+      "salary expectation free text",
+      "why-are-you-leaving narrative"
+    ],
     "source": "AI Query doc; skill pitfall on inflating durations"
   },
-
   "wellbeing": {
-    "idle_days": {"value": 5, "source": "the owner: nothing like being idle too long"},
+    "idle_days": {
+      "value": 5,
+      "source": "the owner: nothing like being idle too long"
+    },
     "health_limits_come_from_doctor": {
       "value": true,
       "source": "skill pitfall; the owner has kidney disease - nephrologist is the only source",
       "why": "Never infer what is healthy for a condition. Plan inside the doctor's rules."
+    }
+  },
+  "cadence": {
+    "_note": "How often each layer runs. The product owns its own clock; the host only has to call pulse.py. Intervals in minutes.",
+    "suggest": {
+      "every_minutes": 360,
+      "source": "suggestive thinking should speak a few times a day, not once"
+    },
+    "ledger_age": {
+      "every_minutes": 1440,
+      "source": "aging moves in days"
+    },
+    "token_watch": {
+      "every_minutes": 360,
+      "source": "warn 2 days before the 7-day Testing cap, so check far more often than that"
+    },
+    "email_triage": {
+      "every_minutes": 180,
+      "source": "the owner's standing order: every 3 hours"
+    },
+    "drive_organize": {
+      "every_minutes": 10080,
+      "source": "weekly is enough for file hygiene"
+    },
+    "weekly_audit": {
+      "every_minutes": 10080,
+      "source": "Monday audit"
     }
   }
 }
