@@ -68,8 +68,18 @@ def layers():
         "drive_organize": (lambda: run([PY, os.path.join("layers", "clean",
                                                          "sensei_clean_cli.py"),
                                         "status"]), True),
-        "weekly_audit": (None, False),
+        "weekly_audit": (lambda: run_tolerant([PY, "audit.py", "--brief"]), True),
     }
+
+
+def run_tolerant(cmd):
+    """Like run(), but exit 1 means "found something", not "broke"."""
+    try:
+        p = subprocess.run(cmd, cwd=HERE, capture_output=True, text=True, timeout=180)
+        out = ((p.stdout or "") + (p.stderr or "")).strip()
+        return (0 if p.returncode in (0, 1) else 1), out
+    except Exception as exc:
+        return 1, str(exc)
 
 
 def run(cmd):
