@@ -28,8 +28,23 @@ MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
 
 
 def load():
-    with open(PROFILE, encoding="utf-8") as fh:
-        return json.load(fh)
+    """Read the profile, or say plainly what to do instead of raising.
+
+    A raw traceback on a clean clone is the first thing a stranger would see,
+    and it says nothing about the one command that fixes it.
+    """
+    if not os.path.exists(PROFILE):
+        print("  No profile.json yet.")
+        print("  That file is the source of truth every document here renders from.")
+        print("  Build it first:   python3 intake.py")
+        raise SystemExit(2)
+    try:
+        with open(PROFILE, encoding="utf-8") as fh:
+            return json.load(fh)
+    except Exception as exc:
+        print("  profile.json exists but could not be read (%s)." % str(exc)[:90])
+        print("  Repair it, or start over:   python3 intake.py")
+        raise SystemExit(2)
 
 
 def fmt_date(iso):

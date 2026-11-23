@@ -8,6 +8,39 @@ Zero dependencies. Pure Python standard library. No API keys, no network calls, 
 
 ---
 
+## Start here (five minutes)
+
+You need Python 3.8 or newer and nothing else. No pip install, no account, no key.
+
+```bash
+git clone https://github.com/ebey317/common-ai
+cd common-ai
+python3 intake.py          # the setup interview. ~33 questions, resumable,
+                           # every question prints what it feeds. Writes profile.json
+python3 profile.py resume trade    # render a resume from what you just answered
+python3 suggest.py         # the morning list: what actually needs you today
+python3 ledger.py report   # the application pipeline and where it stands
+```
+
+That is the whole loop. Answers go in once; the documents, the ranked list, and the
+pipeline all come out of the same file, so they cannot disagree with each other.
+
+Use it every day:
+
+```bash
+python3 suggest.py            # ranked, traceable, no model call
+python3 audit.py --brief      # is the record still true
+python3 pulse.py --status     # which layers are due, which have never run
+python3 vault.py --backup     # put the private files in your own cloud
+```
+
+On a new machine, the same repo plus `python3 vault.py --restore` brings the record back.
+
+Nothing leaves your machine unless you run `vault.py`, and that only goes to a cloud
+account **you** authorize.
+
+---
+
 ## The idea
 
 Most people don't need more capability. The bots they already pay for have the capability.

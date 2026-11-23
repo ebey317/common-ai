@@ -162,7 +162,16 @@ def s_idle(prof, rows, today, std):
     except Exception:
         pass
     last = max(stamps) if stamps else None
-    quiet = (today - last).days if last else 999
+    if last is None:
+        # A brand-new install has no idle streak, and reporting one as "999
+        # days" is a fabricated fact on the first screen a person ever sees.
+        return [{
+            "pri": 70, "kind": "start",
+            "text": "Nothing is logged yet.",
+            "action": "Start with python3 intake.py, then add an application "
+                      "with ledger.py add.",
+        }]
+    quiet = (today - last).days
     if quiet >= idle_days:
         return [{
             "pri": 70, "kind": "nudge",
