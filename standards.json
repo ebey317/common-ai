@@ -165,5 +165,44 @@
       "every_minutes": 10080,
       "source": "Monday audit"
     }
+  },
+  "layers": {
+    "_note": "Every layer defaults ON. Retiring one is a claim that its problem is gone, and it must be said in words. Retired layers are the measure of progress toward BO. Turning OFF costs a sentence; turning ON is free.",
+    "job_search": {
+      "runs_when": "not employed",
+      "retire_when": "employed 90 days",
+      "check": "employed_days",
+      "threshold_days": 90,
+      "requires_statement": "I have a job and I'm keeping it",
+      "state": "on"
+    },
+    "housing_search": {
+      "runs_when": "paying more than necessary for shelter",
+      "retire_when": "living situation is stable",
+      "check": null,
+      "requires_statement": "My living situation is stable",
+      "state": "on"
+    },
+    "grants": {
+      "runs_when": "money owed or available and not claimed",
+      "retire_when": "funded or no longer needed",
+      "check": null,
+      "requires_statement": "I am funded or I no longer need this",
+      "state": "on"
+    },
+    "spending_watch": {
+      "runs_when": "bills unrecorded, spending unmanaged",
+      "retire_when": "costs on record and running under income",
+      "check": "spend_on_record",
+      "requires_statement": "My costs are on record and I'm under my income",
+      "state": "on"
+    },
+    "wellbeing": {
+      "runs_when": "idle too long, habits unmanaged",
+      "retire_when": "stable routine, no prompting needed",
+      "check": null,
+      "requires_statement": "I have a routine and I don't need the prompts",
+      "state": "on"
+    }
   }
 }
