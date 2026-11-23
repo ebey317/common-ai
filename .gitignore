@@ -37,3 +37,4 @@ venv/
 # os
 .DS_Store
 .pulse.lock
+vault.json

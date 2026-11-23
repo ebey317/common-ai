@@ -32,6 +32,7 @@ difference between being taken care of and being interrogated.
 | `projects.py` | Weekend projects, priced, matched against tools actually owned. |
 | `inventory.json` | Tools and project budget (also written by the intake). |
 | `ledger.csv` | The applications themselves. |
+| `vault.py` | Puts the private files in the owner's own cloud and pulls them back. Google Drive or OneDrive. |
 | `backups/` | Snapshots of external documents before they are edited. |
 
 ---
@@ -91,6 +92,47 @@ month, no bucket starves, no bucket gets favoritism.
 **The health line.** The intake asks what a doctor already decided and plans inside it. It
 never decides what is healthy for a condition. Allergies are hard stops that nothing
 downstream may override.
+
+---
+
+## The vault: the record survives the machine
+
+`profile.json`, `ledger.csv` and the rest are the whole point of this system, and they
+live on one machine. `vault.py` puts them in the owner's **own** cloud storage and can pull
+them back onto a clean install — so a dead laptop costs a re-clone, not the record.
+
+```
+python3 vault.py --providers    # which backends are configured here
+python3 vault.py --status       # local vs cloud, by content hash
+python3 vault.py --backup       # push what the cloud does not already have
+python3 vault.py --restore      # pull what this machine does not already have
+```
+
+**Two providers, one shape.** `google` uses the Drive v3 API with a token already on the
+machine. `onedrive` uses Microsoft Graph. Either alone is enough — you do not need both, and
+an unconfigured provider reports `not configured` rather than failing the run.
+
+To set up Google Drive, point the vault at a token file with `refresh_token`, `client_id`
+and `client_secret` (default `~/.hermes/google_token.json`, or `GOOGLE_TOKEN`), from an
+OAuth client with the `drive` scope.
+
+To set up OneDrive, register an app at `portal.azure.com` → App registrations, add the
+delegated permission `Files.ReadWrite.All`, and write a token file with `refresh_token`,
+`client_id` (and `client_secret` if the app uses one) to
+`~/.hermes/onedrive_token.json`, or `ONEDRIVE_TOKEN`. Add `"tenant": "<id>"` for a
+single-tenant app; it defaults to `common`.
+
+**The conflict rule.** Local is the source of truth; the cloud is a backup, never a second
+owner. `backup` and `restore` compare **content hashes**, not clocks — an upload stamps a
+new mtime, so timestamps lie about whether anything actually changed. A file the far side
+holds newer is reported and left alone until you pass `--force`. A restore that would
+overwrite a newer local edit does not happen quietly; that is the whole failure mode this
+rule exists to prevent. Downloads are verified against the checksum the cloud published
+before anything is written, and writes are atomic.
+
+**What does not go up.** `assets/` — the wardrobe photographs — is local-only by design.
+A person's body photos do not need to be in a cloud account to make a resume better.
+Everything else in the vault is text the owner typed about their own life.
 
 ---
 
