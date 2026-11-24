@@ -102,6 +102,9 @@ def fingerprint(name, out):
     lines = [l.strip() for l in out.splitlines() if l.strip()]
     if name == "suggest":
         key = [re.sub(r"\s+", " ", l) for l in lines if re.match(r"^\d+\.\s*\[", l)]
+    elif name == "email_triage":
+        # the listed messages only; spam counts drifting up must not re-send the cards
+        key = [l for l in lines if l.startswith("- [") or "COULD NOT BE READ" in l]
     else:
         key = lines[:1]
     return hashlib.sha256("\n".join(key).encode()).hexdigest()[:16]
@@ -122,8 +125,7 @@ def layers():
         "ledger_age": (lambda: run([PY, "ledger.py", "age"]), True),
         "token_watch": (lambda: run(["bash", os.path.expanduser(
             "~/.hermes/scripts/google_workspace_token_check.sh")]), True),
-        "email_triage": (lambda: run([PY, os.path.join("layers", "email", "triage.py"),
-                                      "--days", "1"]), True),
+        "email_triage": (lambda: run(["/usr/bin/python3", os.path.join("layers", "email", "cards.py")]), True),
         "drive_organize": (lambda: run([PY, os.path.join("layers", "clean",
                                                          "sensei_clean_cli.py"),
                                         "status"]), True),
