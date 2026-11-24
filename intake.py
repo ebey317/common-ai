@@ -396,7 +396,10 @@ def batch(path):
         if v in ("", None, []):
             blank += 1
             continue
-        answers[k] = v
+        # NEST the dotted key, exactly as the interview does. A flat assignment
+        # here writes a literal "personal.full_name" key that nothing reads, so
+        # the profile silently keeps its old values and looks imported.
+        set_path(answers, k, v)
         applied += 1
     st["answers"] = answers
     save_state(st)

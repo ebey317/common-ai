@@ -38,3 +38,4 @@ venv/
 .DS_Store
 .pulse.lock
 vault.json
+intake-answers.json
