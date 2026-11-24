@@ -347,7 +347,77 @@ def reset():
     return 0
 
 
+def _flat_questions():
+    return [(s, q) for s, _, qs in SECTIONS for q in qs]
+
+
+def template(path):
+    """Write every answer key, so a caller knows the exact shape.
+
+    An AI assistant cannot type into a prompt loop, but it can collect what the
+    person told it and write it down. Refusing to support that just means the
+    assistant invents a profile instead, which is far worse than a blank file.
+    """
+    flat = _flat_questions()
+    out = {q["k"]: "" for _, q in flat}
+    with open(path, "w", encoding="utf-8") as fh:
+        json.dump(out, fh, indent=2)
+    print("  wrote %s with %d questions" % (path, len(out)))
+    print("\n  Fill in what the person actually told you. Leave the rest blank.")
+    print("  Then: python3 intake.py --answers %s\n" % path)
+    for _, q in flat:
+        print("  %-32s %s" % (q["k"], q.get("feeds", "")))
+    return 0
+
+
+def batch(path):
+    """Apply answers from a JSON file instead of the interview."""
+    if not path:
+        print("  usage: python3 intake.py --answers <file.json>")
+        print("  make the shape first: python3 intake.py --template answers.json")
+        return 2
+    try:
+        with open(path, encoding="utf-8") as fh:
+            incoming = json.load(fh)
+    except Exception as exc:
+        print("  cannot read %s (%s)" % (path, str(exc)[:90]))
+        return 2
+    if not isinstance(incoming, dict):
+        print("  expected a JSON object of dotted keys, got %s"
+              % type(incoming).__name__)
+        return 2
+
+    st = load_state()
+    answers = st["answers"]
+    applied = blank = 0
+    for k, v in incoming.items():
+        if k.startswith("_"):
+            continue
+        if v in ("", None, []):
+            blank += 1
+            continue
+        answers[k] = v
+        applied += 1
+    st["answers"] = answers
+    save_state(st)
+
+    print("  applied %d answers, %d left blank" % (applied, blank))
+    if applied == 0:
+        print("  nothing was filled in, so profile.json was not written.")
+        return 2
+    write_profile(answers)
+    print("  Next: python3 setup.py     (confirms the loop works)")
+    return 0
+
+
 def main(argv):
+    if "--template" in argv:
+        i = argv.index("--template")
+        p = argv[i + 1] if i + 1 < len(argv) else "intake-answers.json"
+        return template(p)
+    if "--answers" in argv:
+        i = argv.index("--answers")
+        return batch(argv[i + 1] if i + 1 < len(argv) else "")
     if "--status" in argv:
         return status()
     if "--render" in argv:
