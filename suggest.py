@@ -399,6 +399,12 @@ def main(argv):
             top = None
 
     items = gather()
+    if "--min-pri" in argv:
+        try:
+            floor = int(argv[argv.index("--min-pri") + 1])
+            items = [i for i in items if i["pri"] >= floor]
+        except Exception:
+            pass
     if top:
         items = items[:top]
 

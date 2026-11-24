@@ -22,6 +22,7 @@ An honest empty is worth more than a fake green.
 
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -93,6 +94,19 @@ def save_state(st):
         pass
 
 
+def fingerprint(name, out):
+    """What counts as "the same message" for a layer. Dates, ages and one-time
+    auth links change every run without meaning anything, so they are ignored:
+    suggest compares its numbered items, every other layer its first line."""
+    import hashlib
+    lines = [l.strip() for l in out.splitlines() if l.strip()]
+    if name == "suggest":
+        key = [re.sub(r"\s+", " ", l) for l in lines if re.match(r"^\d+\.\s*\[", l)]
+    else:
+        key = lines[:1]
+    return hashlib.sha256("\n".join(key).encode()).hexdigest()[:16]
+
+
 def cadence():
     try:
         with open(STANDARDS, encoding="utf-8") as fh:
@@ -104,7 +118,7 @@ def cadence():
 # layer name -> (what it runs, is it built)
 def layers():
     return {
-        "suggest": (lambda: run([PY, "suggest.py", "--quiet"]), True),
+        "suggest": (lambda: run([PY, "suggest.py", "--quiet", "--min-pri", "70"]), True),
         "ledger_age": (lambda: run([PY, "ledger.py", "age"]), True),
         "token_watch": (lambda: run(["bash", os.path.expanduser(
             "~/.hermes/scripts/google_workspace_token_check.sh")]), True),
@@ -214,7 +228,17 @@ def _run(argv):
             quiet.append((name, "not built"))
             continue
         code, out = fn()  # type: ignore[misc]
-        st[name] = {"last": time.time()}
+        prev = st.get(name, {})
+        st[name] = {"last": time.time(), "sent": prev.get("sent")}
+        text = out or ""
+        if text:
+            fp = fingerprint(name, text)
+            if fp == prev.get("sent") and not force:
+                quiet.append((name, "unchanged"))   # said this already
+                continue
+            st[name]["sent"] = fp
+        elif code == 0:
+            st[name]["sent"] = None   # went quiet; a return of the issue is news
         if code == 0:
             if out:
                 ran.append((name, out))
