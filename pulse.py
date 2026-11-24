@@ -251,13 +251,23 @@ def _run(argv):
 
     save_state(st)
 
+    # The owner sees one product, Common Use AI. Layer names are internal.
+    TITLES = {"suggest": "NEXT UP", "email_triage": "EMAIL", "token_watch": "GOOGLE ACCESS",
+              "ledger_age": "APPLICATIONS", "drive_organize": "DRIVE",
+              "weekly_audit": "WEEKLY CHECK"}
     spoke = False
+    if ran or failed:
+        print("COMMON USE AI")
     for name, out in ran:
-        print("\n[%s]" % name)
+        if name == "suggest":
+            out = "\n".join(l for l in out.splitlines()
+                            if "WHAT I'D DO NEXT" not in l and not set(l.strip()) <= {"=", "-"})
+            out = out.strip("\n")
+        print("\n" + TITLES.get(name, name.upper()))
         print(out)
         spoke = True
     for name, out in failed:
-        print("\n[%s] FAILED" % name)
+        print("\n%s - COULD NOT RUN" % TITLES.get(name, name.upper()))
         print(out)
         spoke = True
 
