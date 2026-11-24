@@ -301,3 +301,8 @@ It runs on one machine for one person, and it is honest about that.
 `intake.py` writes into `profile.json` but never invents a value. Anything unknown is either
 left blank or listed in `_needs_confirmation`, and `profile.py gaps` prints that list every
 time you ask.
+
+## Email check format (owner's standing rule)
+
+Email triage, whether sent by pulse or asked for in chat, is ONE set of category cards across every account
+(Important, Bills, Job leads, Personal, Social, Spam, Other), never a flat list. Run `layers/email/cards.py`.
