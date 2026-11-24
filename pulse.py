@@ -99,12 +99,13 @@ def fingerprint(name, out):
     auth links change every run without meaning anything, so they are ignored:
     suggest compares its numbered items, every other layer its first line."""
     import hashlib
-    lines = [l.strip() for l in out.splitlines() if l.strip()]
+    lines = [ln.strip() for ln in out.splitlines() if ln.strip()]
     if name == "suggest":
-        key = [re.sub(r"\s+", " ", l) for l in lines if re.match(r"^\d+\.\s*\[", l)]
+        key = [re.sub(r"\s+", " ", ln) for ln in lines if re.match(r"^\d+\.\s*\[", ln)]
     elif name == "email_triage":
         # the listed messages only; spam counts drifting up must not re-send the cards
-        key = [l for l in lines if l.startswith("- [") or "COULD NOT BE READ" in l]
+        key = [ln for ln in lines
+               if ln.startswith("- [") or "COULD NOT BE READ" in ln]
     else:
         key = lines[:1]
     return hashlib.sha256("\n".join(key).encode()).hexdigest()[:16]
@@ -260,8 +261,9 @@ def _run(argv):
         print("COMMON USE AI")
     for name, out in ran:
         if name == "suggest":
-            out = "\n".join(l for l in out.splitlines()
-                            if "WHAT I'D DO NEXT" not in l and not set(l.strip()) <= {"=", "-"})
+            out = "\n".join(ln for ln in out.splitlines()
+                            if "WHAT I'D DO NEXT" not in ln
+                            and not set(ln.strip()) <= {"=", "-"})
             out = out.strip("\n")
         print("\n" + TITLES.get(name, name.upper()))
         print(out)
